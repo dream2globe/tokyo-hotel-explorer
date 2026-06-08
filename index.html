@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>도쿄 호텔 탐색기 🗼</title>
+<style>
+  :root {
+    --primary: #e53e3e;
+    --primary-light: #fff5f5;
+    --secondary: #2d3748;
+    --accent: #ed8936;
+    --bg: #f7fafc;
+    --card-bg: #ffffff;
+    --border: #e2e8f0;
+    --text: #2d3748;
+    --text-muted: #718096;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --shadow-hover: 0 8px 24px rgba(0,0,0,0.14);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #c53030, #e53e3e);
+    color: white;
+    padding: 24px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(229,62,62,0.3);
+  }
+  header h1 { font-size: 1.6rem; font-weight: 700; }
+  header p { font-size: 0.85rem; opacity: 0.85; margin-top: 4px; }
+  #exchange-info {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    text-align: right;
+  }
+
+  /* Main layout */
+  .main { display: flex; gap: 20px; padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+  }
+  .filter-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .filter-card h3 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 14px;
+  }
+
+  .price-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .price-range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--primary);
+    margin-bottom: 10px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+
+  .checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .checkbox-group input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+
+  .star-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+  .star-btn {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.15s;
+  }
+  .star-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .sort-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    background: white;
+    color: var(--text);
+  }
+
+  /* Compare bar */
+  #compare-bar {
+    display: none;
+    background: var(--secondary);
+    color: white;
+    padding: 14px 32px;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  #compare-bar.visible { display: flex; }
+  #compare-bar span { font-weight: 600; }
+  .compare-chips { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; }
+  .compare-chip {
+    background: rgba(255,255,255,0.15);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .compare-chip button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    opacity: 0.7;
+  }
+  .btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: #c53030; }
+  .btn-secondary { background: rgba(255,255,255,0.2); color: white; }
+  .btn-secondary:hover { background: rgba(255,255,255,0.3); }
+
+  /* Hotel grid */
+  .content { flex: 1; min-width: 0; }
+
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .results-header h2 { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
+
+  .hotel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .hotel-card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    cursor: pointer;
+  }
+  .hotel-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .hotel-card.selected { border-color: var(--primary); background: var(--primary-light); }
+
+  .card-map {
+    height: 90px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .area-badge {
+    background: rgba(255,255,255,0.9);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--secondary);
+  }
+  .card-body { padding: 14px 16px; }
+
+  .card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .card-name { font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .card-name-ko { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+  .stars { color: #f6c90e; font-size: 0.85rem; }
+
+  .rating-badge {
+    background: #276749;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    white-space: nowrap;
+  }
+  .rating-badge.good { background: #276749; }
+  .rating-badge.avg { background: #c05621; }
+
+  .price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin: 10px 0 6px;
+  }
+  .price-krw { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
+  .price-jpy { font-size: 0.8rem; color: var(--text-muted); }
+  .price-label { font-size: 0.75rem; color: var(--text-muted); }
+
+  .highlight-text {
+    font-size: 0.78rem;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .distance-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .distance-tag {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .distance-tag.close { background: #e6fffa; border-color: #81e6d9; color: #234e52; }
+
+  .amenity-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px; }
+  .amenity-tag {
+    background: #ebf4ff;
+    color: #2b6cb0;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+  .amenity-tag.special { background: #fef3c7; color: #92400e; }
+
+  .card-actions { display: flex; gap: 8px; }
+  .btn-detail {
+    flex: 1;
+    padding: 7px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .btn-detail:hover { border-color: var(--primary); color: var(--primary); }
+  .btn-compare {
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--primary);
+    background: white;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-compare:hover, .btn-compare.active { background: var(--primary); color: white; }
+  .btn-booking {
+    padding: 7px 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: all 0.15s;
+  }
+  .btn-booking:hover { background: #dd6b20; }
+
+  /* No results */
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    grid-column: 1/-1;
+  }
+  .no-results .emoji { font-size: 3rem; display: block; margin-bottom: 12px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 20px;
+    overflow-y: auto;          /* 오버레이 자체가 스크롤 */
+    overscroll-behavior: contain; /* 배경 스크롤 차단 */
+  }
+  .modal-overlay.visible { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 16px;
+    max-width: 900px;
+    width: 100%;
+    max-height: none;          /* 높이 제한 제거 → 오버레이가 스크롤 담당 */
+    overflow-y: visible;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    margin: auto 0;
+  }
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 0 4px;
+  }
+  .modal-body { padding: 24px; }
+
+  /* Compare modal */
+  .compare-grid {
+    display: grid;
+    gap: 0;
+  }
+  .compare-row {
+    display: grid;
+    border-bottom: 1px solid var(--border);
+  }
+  .compare-row.header { background: var(--secondary); color: white; font-weight: 700; }
+  .compare-cell {
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    border-right: 1px solid var(--border);
+  }
+  .compare-cell:last-child { border-right: none; }
+  .compare-cell.label { background: var(--bg); font-weight: 600; font-size: 0.82rem; color: var(--text-muted); }
+  .best-value { background: #f0fff4; font-weight: 700; color: #276749; }
+
+  /* Category rating bars */
+  .rating-bars { margin-top: 16px; }
+  .rating-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .rating-bar-label { width: 70px; font-size: 0.8rem; color: var(--text-muted); }
+  .rating-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .rating-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #276749, #48bb78);
+    border-radius: 3px;
+    transition: width 0.5s;
+  }
+  .rating-bar-score { font-size: 0.82rem; font-weight: 700; color: var(--text); width: 28px; }
+
+  .review-text {
+    background: var(--bg);
+    border-left: 3px solid var(--primary);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text);
+    margin-top: 16px;
+  }
+
+  .map-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #2b6cb0;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: 1px solid #bee3f8;
+    border-radius: 6px;
+    background: #ebf8ff;
+    margin-top: 12px;
+  }
+  .map-link:hover { background: #bee3f8; }
+
+  /* Station distance viz */
+  .station-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .station-item {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .station-name { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 4px; }
+  .station-time { font-size: 1.3rem; font-weight: 800; color: var(--secondary); }
+  .station-unit { font-size: 0.7rem; color: var(--text-muted); }
+  .station-bar {
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 6px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+  .station-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #48bb78, #276749);
+  }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  .badge-breakfast { background: #c6f6d5; color: #22543d; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 700; }
+  .tag-new { background: #fed7d7; color: #c53030; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; margin-left: 4px; }
+
+  /* ── Map view ── */
+  .view-toggle { display: flex; gap: 6px; }
+  .view-btn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: white;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .view-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
+  #map-container {
+    display: none;
+    height: 620px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  #map-container.visible { display: block; }
+  /* Leaflet 팝업 커스텀 */
+  .leaflet-popup-content { min-width: 220px; font-family: -apple-system,'Segoe UI','Noto Sans KR',sans-serif; }
+  .map-popup-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; }
+  .map-popup-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+  .map-popup-price { font-size: 1rem; font-weight: 800; color: #e53e3e; }
+  .map-popup-rating { background:#276749; color:white; padding:3px 8px; border-radius:6px; font-weight:700; font-size:0.85rem; }
+  .map-popup-btn {
+    display: block; width: 100%; padding: 7px; text-align: center;
+    background: #e53e3e; color: white; border: none; border-radius: 8px;
+    cursor: pointer; font-weight: 600; font-size: 0.85rem; margin-top: 6px;
+  }
+  .map-popup-btn:hover { background: #c53030; }
+  .map-popup-area { font-size:0.78rem; color:#718096; margin-bottom:6px; }
+  /* 마커 아이콘 */
+  .hotel-marker {
+    width: 32px; height: 32px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── Itinerary ── */
+  #itinerary-modal .modal { max-width: 780px; }
+  .itin-header-band {
+    background: linear-gradient(135deg, #1a202c, #2d3748);
+    color: white;
+    padding: 20px 24px 16px;
+    border-radius: 16px 16px 0 0;
+  }
+  .itin-hotel-name { font-size: 1.15rem; font-weight: 800; }
+  .itin-subtitle { font-size: 0.82rem; opacity: 0.75; margin-top: 3px; }
+  .itin-dec-banner {
+    background: linear-gradient(90deg, #c53030, #ed8936);
+    color: white;
+    padding: 8px 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .day-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    padding: 0 20px;
+    background: #f8fafc;
+  }
+  .day-tab {
+    padding: 12px 18px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .day-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  .day-content { padding: 20px 24px; }
+  .day-theme {
+    background: #ebf8ff;
+    border-left: 3px solid #3182ce;
+    padding: 8px 14px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #2b6cb0;
+    margin-bottom: 16px;
+  }
+  .timeline { position: relative; }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 30px;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #e2e8f0 0%, #e2e8f0 100%);
+  }
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tl-item:hover .tl-card { box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateX(2px); }
+  .tl-dot-col { width: 62px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .tl-time {
+    font-size: 0.7rem; font-weight: 700;
+    background: var(--secondary); color: white;
+    padding: 3px 7px; border-radius: 10px;
+    white-space: nowrap; z-index: 1;
+  }
+  .tl-dot {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2.5px solid white;
+    box-shadow: 0 0 0 2px currentColor;
+    z-index: 1;
+  }
+  .tl-card {
+    flex: 1;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    transition: all 0.15s;
+  }
+  .tl-card.december { border-left: 3px solid #e53e3e; }
+  .tl-place-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .tl-place { font-weight: 700; font-size: 0.92rem; }
+  .tl-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tl-tag {
+    font-size: 0.68rem; font-weight: 700;
+    padding: 2px 7px; border-radius: 10px;
+  }
+  .tl-tag.walk { background: #e6fffa; color: #234e52; }
+  .tl-tag.dec  { background: #fff5f5; color: #c53030; }
+  .tl-tag.food { background: #fffff0; color: #744210; }
+  .tl-tag.shop { background: #ebf4ff; color: #2b6cb0; }
+  .tl-tag.view { background: #f0fff4; color: #276749; }
+  .tl-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+  .tl-tip { font-size: 0.75rem; color: var(--accent); font-weight: 600; margin-top: 4px; }
+
+  .itin-map-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 11px;
+    background: var(--secondary); color: white;
+    border: none; border-radius: 10px;
+    cursor: pointer; font-weight: 700; font-size: 0.9rem;
+    margin-top: 4px; transition: all 0.15s;
+  }
+  .itin-map-btn:hover { background: #1a202c; }
+  .btn-itinerary {
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1.5px solid #3182ce;
+    background: white; color: #3182ce;
+    cursor: pointer; font-size: 0.82rem; font-weight: 600;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-itinerary:hover { background: #3182ce; color: white; }
+  .itin-legend {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    padding: 12px 24px; border-top: 1px solid var(--border);
+    background: #f8fafc;
+  }
+  .itin-legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--text-muted); }
+
+  /* ── Hot Spots ── */
+  .tl-tag.hot { background:#fff0e6;color:#c05621;font-weight:800; }
+  .hot-badge {
+    display:inline-flex;align-items:center;gap:3px;
+    background:linear-gradient(90deg,#e53e3e,#ed8936);
+    color:white;font-size:0.68rem;font-weight:800;
+    padding:2px 7px;border-radius:10px;
+    animation:hotpulse 2s ease-in-out infinite;
+  }
+  @keyframes hotpulse { 0%,100%{opacity:1} 50%{opacity:.75} }
+  .hotspot-grid {
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:14px;padding:20px;
+  }
+  .hotspot-card {
+    background:var(--card-bg);border-radius:12px;overflow:hidden;
+    box-shadow:var(--shadow);transition:all .2s;cursor:pointer;
+    border:2px solid transparent;
+  }
+  .hotspot-card:hover { box-shadow:var(--shadow-hover);transform:translateY(-2px); }
+  .hotspot-card-band {
+    height:6px;
+  }
+  .hotspot-card-body { padding:14px; }
+  .hotspot-name { font-weight:800;font-size:.95rem;margin-bottom:4px;display:flex;align-items:center;gap:6px; }
+  .hotspot-area-tag {
+    font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:10px;
+    background:#edf2f7;color:#4a5568;
+  }
+  .hotspot-desc { font-size:.82rem;color:var(--text-muted);line-height:1.5;margin:6px 0; }
+  .hotspot-meta { display:flex;gap:6px;flex-wrap:wrap;margin-top:8px; }
+  .hotspot-tip { font-size:.75rem;color:var(--accent);font-weight:600;margin-top:4px; }
+  .hotspot-cat {
+    font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:10px;
+  }
+  .hotspot-cat.food { background:#fffff0;color:#744210; }
+  .hotspot-cat.view { background:#f0fff4;color:#276749; }
+  .hotspot-cat.shop { background:#ebf4ff;color:#2b6cb0; }
+  .hotspot-cat.art  { background:#faf5ff;color:#6b46c1; }
+  .hotspot-cat.new  { background:#fff5f5;color:#c53030; }
+  .hotspot-cat.dec  { background:#fff8f0;color:#c05621; }
+  .hot-filter-row { display:flex;gap:6px;flex-wrap:wrap;padding:14px 20px 0; }
+  .hot-filter-btn {
+    padding:4px 12px;border-radius:16px;border:1.5px solid var(--border);
+    background:white;cursor:pointer;font-size:.78rem;font-weight:600;transition:all .15s;
+  }
+  .hot-filter-btn.active { background:var(--primary);color:white;border-color:var(--primary); }
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<style>
+  .hotel-pill { transition: transform 0.1s, box-shadow 0.1s; }
+  .hotel-pill:hover { transform: scale(1.08); box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important; }
+  /* cluster override */
+  .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div {
+    background: #e53e3e; color: white; font-weight: 800;
+  }
+  .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+    background: rgba(229,62,62,0.25);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🗼 도쿄 호텔 탐색기</h1>
+    <p>12월 도쿄 여행 · 주요 지역 호텔 비교</p>
+  </div>
+  <div id="exchange-info">
+    <div style="font-size:1rem;font-weight:700;">💱 환율 설정</div>
+    <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+      <span style="font-size:0.8rem;">1JPY =</span>
+      <input type="number" id="exchange-rate" value="9.5" step="0.1" min="5" max="15"
+        style="width:60px;padding:3px 6px;border-radius:4px;border:none;font-weight:700;font-size:0.9rem;">
+      <span style="font-size:0.8rem;">KRW</span>
+    </div>
+  </div>
+</header>
+
+<div id="compare-bar">
+  <span>비교 중 📊</span>
+  <div class="compare-chips" id="compare-chips"></div>
+  <button class="btn btn-primary" onclick="showCompare()">비교하기</button>
+  <button class="btn btn-secondary" onclick="clearCompare()">초기화</button>
+</div>
+
+<div class="main">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="filter-card">
+      <h3>💰 1박 가격 (KRW)</h3>
+      <div class="price-range-labels">
+        <span id="price-min-label">₩0</span>
+        <span id="price-max-label">₩400,000</span>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="font-size:0.78rem;color:var(--text-muted);">최솟값</label>
+        <input type="range" id="price-min" min="100000" max="350000" step="10000" value="150000">
+      </div>
+      <div>
+        <label style="font-size:0.78rem;color:var(--text-muted);">최댓값</label>
+        <input type="range" id="price-max" min="150000" max="400000" step="10000" value="310000">
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <h3>⭐ 호텔 등급</h3>
+      <div class="star-filter" id="star-filter">
+        <button class="star-btn active" data-stars="0">전체</button>
+        <button class="star-btn" data-stars="3">3성</button>
+        <button class="star-btn" data-stars="4">4성</button>
+        <button class="star-btn" data-stars="5">5성</button>
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <h3>📍 지역</h3>
+      <div class="checkbox-group" id="area-filter">
+        <label><input type="checkbox" value="Shinjuku" checked> 신주쿠</label>
+        <label><input type="checkbox" value="Shibuya" checked> 시부야</label>
+        <label><input type="checkbox" value="Ginza" checked> 긴자</label>
+        <label><input type="checkbox" value="Asakusa" checked> 아사쿠사</label>
+        <label><input type="checkbox" value="Akihabara" checked> 아키하바라</label>
+        <label><input type="checkbox" value="Ikebukuro" checked> 이케부쿠로</label>
+        <label><input type="checkbox" value="Ueno" checked> 우에노</label>
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <h3>✨ 특수 시설</h3>
+      <div class="checkbox-group" id="amenity-filter">
+        <label><input type="checkbox" value="hot_spring_bath"> 온천/대욕탕</label>
+        <label><input type="checkbox" value="breakfast_included"> 조식 포함</label>
+        <label><input type="checkbox" value="rooftop_bar"> 루프탑 바</label>
+        <label><input type="checkbox" value="gym"> 피트니스</label>
+        <label><input type="checkbox" value="free_ramen_night"> 무료 야식 라멘</label>
+        <label><input type="checkbox" value="pool"> 수영장</label>
+        <label><input type="checkbox" value="spa"> 스파</label>
+        <label><input type="checkbox" value="kitchenette"> 주방</label>
+      </div>
+    </div>
+
+    <div class="filter-card">
+      <h3>🔀 정렬</h3>
+      <select class="sort-select" id="sort-select">
+        <option value="rating">평점 높은 순</option>
+        <option value="price_asc">가격 낮은 순</option>
+        <option value="price_desc">가격 높은 순</option>
+        <option value="distance_shinjuku">신주쿠역 가까운 순</option>
+        <option value="distance_shibuya">시부야역 가까운 순</option>
+        <option value="distance_tokyo">도쿄역 가까운 순</option>
+        <option value="reviews">리뷰 많은 순</option>
+      </select>
+    </div>
+
+    <div class="filter-card" style="background:#fff5f5;border:1px solid #fed7d7;">
+      <h3 style="color:var(--primary);">🎯 20~30만원 추천</h3>
+      <button class="btn btn-primary" style="width:100%;margin-top:4px;" onclick="setTarget()">20~30만원 필터 적용</button>
+    </div>
+
+    <div class="filter-card" style="background:linear-gradient(135deg,#fff8f0,#fff0e6);border:1px solid #fbd38d;">
+      <h3 style="color:#c05621;">🔥 도쿄 핫플레이스</h3>
+      <p style="font-size:.78rem;color:#744210;margin-bottom:10px;line-height:1.5;">2024~2026 오픈 신규 명소 & 현재 가장 핫한 스팟</p>
+      <button class="btn" style="width:100%;background:#ed8936;color:white;" onclick="openHotspots()">핫플레이스 모아보기 🔥</button>
+    </div>
+  </aside>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="results-header">
+      <h2 id="results-count">로딩 중...</h2>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="font-size:0.8rem;color:var(--text-muted);">최대 3개 선택 후 비교 가능</div>
+        <div class="view-toggle">
+          <button class="view-btn active" id="btn-card" onclick="switchView('card')">🃏 카드</button>
+          <button class="view-btn" id="btn-map" onclick="switchView('map')">🗺️ 지도</button>
+        </div>
+      </div>
+    </div>
+    <div class="hotel-grid" id="hotel-grid">
+      <div class="no-results"><span class="emoji">⏳</span>데이터 로딩 중...</div>
+    </div>
+    <div id="map-container"></div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal" id="detail-modal-content"></div>
+</div>
+
+
+<!-- Itinerary Modal -->
+<div class="modal-overlay" id="itinerary-modal">
+  <div class="modal" id="itinerary-modal-content" style="max-width:760px;padding:0;overflow:hidden;border-radius:16px;"></div>
+</div>
+
+<!-- Hotspots Modal -->
+<div class="modal-overlay" id="hotspots-modal">
+  <div class="modal" id="hotspots-modal-content" style="max-width:900px;padding:0;border-radius:16px;overflow:hidden;"></div>
+</div>
+<!-- Compare Modal -->
+<div class="modal-overlay" id="compare-modal">
+  <div class="modal" id="compare-modal-content" style="max-width:1000px;"></div>
+</div>
+
+<footer>
+  데이터 기준: 2026년 6월 · 실제 가격은 시즌·예약 시기에 따라 변동될 수 있습니다 · MVP 버전
+</footer>
+
+<script>
+
+// ──────────── 뷰 전환 (카드 / 지도) ────────────
+function switchView(view) {
+  currentView = view;
+  const grid = document.getElementById('hotel-grid');
+  const mapDiv = document.getElementById('map-container');
+  const btnCard = document.getElementById('btn-card');
+  const btnMap = document.getElementById('btn-map');
+
+  if (view === 'map') {
+    grid.style.display = 'none';
+    mapDiv.classList.add('visible');
+    btnCard.classList.remove('active');
+    btnMap.classList.add('active');
+    if (!map) initMap();
+    // 현재 필터 기준으로 마커 표시
+    const f = getFilters();
+    let filtered = hotels.filter(h => applyFilters(h, f));
+    filtered = sortHotels(filtered, f.sort, f.rate);
+    updateMapMarkers(filtered);
+  } else {
+    grid.style.display = '';
+    mapDiv.classList.remove('visible');
+    btnCard.classList.add('active');
+    btnMap.classList.remove('active');
+  }
+}
+
+// ──────────── 지도 초기화 (Leaflet + CartoDB Voyager) ────────────
+function initMap() {
+  map = L.map('map-container', { zoomControl: true }).setView([35.6896, 139.7006], 13);
+
+  // CartoDB Voyager: OSM 기반이지만 훨씬 깔끔한 배경
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a> © <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 19,
+    subdomains: 'abcd',
+  }).addTo(map);
+
+  // 마커 클러스터 그룹 — 겹치는 마커를 자동으로 묶음
+  markerClusterGroup = L.markerClusterGroup({
+    iconCreateFunction: function(cluster) {
+      const n = cluster.getChildCount();
+      return L.divIcon({
+        html: `<div style="
+          background:#e53e3e;color:white;
+          width:38px;height:38px;border-radius:50%;
+          border:3px solid white;
+          box-shadow:0 3px 10px rgba(229,62,62,0.45);
+          display:flex;align-items:center;justify-content:center;
+          font-size:13px;font-weight:800;
+        ">${n}</div>`,
+        className: '',
+        iconSize: [38, 38],
+        iconAnchor: [19, 19],
+      });
+    },
+    maxClusterRadius: 55,
+    spiderfyOnMaxZoom: true,
+    showCoverageOnHover: false,
+    animate: true,
+    disableClusteringAtZoom: 16,
+  });
+  map.addLayer(markerClusterGroup);
+
+  // 주요 역 레이블 (지하철 아이콘 포함, 호텔 마커 뒤에 표시)
+  const landmarks = [
+    { name: '신주쿠역', lat: 35.6896, lng: 139.7006 },
+    { name: '시부야역', lat: 35.6580, lng: 139.7016 },
+    { name: '도쿄역',   lat: 35.6812, lng: 139.7671 },
+    { name: '아사쿠사', lat: 35.7111, lng: 139.7966 },
+    { name: '이케부쿠로역', lat: 35.7295, lng: 139.7109 },
+    { name: '우에노역', lat: 35.7141, lng: 139.7774 },
+  ];
+  landmarks.forEach(lm => {
+    L.marker([lm.lat, lm.lng], {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="
+          background:#1a202c;color:white;
+          padding:4px 10px;border-radius:12px;
+          font-size:10px;font-weight:700;white-space:nowrap;
+          box-shadow:0 1px 5px rgba(0,0,0,0.35);
+          border:1px solid rgba(255,255,255,0.15);
+          pointer-events:none;
+          transform:translate(-50%,-50%);
+        ">🚉 ${lm.name}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [0, 0],
+      }),
+      zIndexOffset: -2000,
+      interactive: false,
+    }).addTo(map);
+  });
+}
+
+// ──────────── 마커 업데이트 ────────────
+function updateMapMarkers(filteredHotels) {
+  if (markerClusterGroup) markerClusterGroup.clearLayers();
+  markers = [];
+
+  filteredHotels.forEach(h => {
+    // 평점 기준 색상 (테두리 & 배지)
+    const rc = h.rating >= 8.8 ? '#276749' : h.rating >= 8.0 ? '#c05621' : '#c53030';
+    const priceShort = `₩${Math.round(h.price_krw / 10000)}만`;
+    const krw = formatKRW(h.price_krw);
+    const areaColor = AREA_MARKER_COLORS[h.area] || '#667eea';
+
+    // 가격 + 평점 pill 마커 — Airbnb 스타일
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="hotel-pill" style="
+        background:white;
+        border:2px solid ${rc};
+        padding:5px 9px 5px 6px;
+        border-radius:20px;
+        box-shadow:0 2px 10px rgba(0,0,0,0.22);
+        display:flex;align-items:center;gap:5px;
+        cursor:pointer;white-space:nowrap;
+      ">
+        <span style="
+          background:${rc};color:white;
+          padding:2px 6px;border-radius:10px;
+          font-size:10px;font-weight:800;line-height:1.4;
+        ">${h.rating}</span>
+        <span style="font-size:11px;font-weight:800;color:#1a202c;">${priceShort}</span>
+      </div>`,
+      iconSize: [94, 30],
+      iconAnchor: [47, 30],
+      popupAnchor: [0, -34],
+    });
+
+    const marker = L.marker([h.lat, h.lng], { icon });
+
+    const popupHtml = `
+      <div style="font-family:-apple-system,'Noto Sans KR',sans-serif;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:${areaColor};flex-shrink:0;display:inline-block;"></span>
+          <span style="font-weight:800;font-size:0.95rem;">${h.name_ko}</span>
+        </div>
+        <div style="font-size:0.75rem;color:#718096;margin-bottom:8px;">
+          📍 ${AREA_KO_MAP[h.area]||h.area} · ${'★'.repeat(h.stars)} · ${h.nearest_station} ${h.nearest_station_walk_min}분
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:1.05rem;font-weight:800;color:#e53e3e;">${krw}<small style="font-size:0.72rem;font-weight:400;color:#718096;"> /박</small></span>
+          <span style="background:${rc};color:white;padding:4px 10px;border-radius:8px;font-weight:800;font-size:0.9rem;">${h.rating}</span>
+        </div>
+        <div style="font-size:0.75rem;color:#ed8936;font-weight:600;margin-bottom:8px;">✦ ${h.highlight}</div>
+        <button class="map-popup-btn" onclick="openDetail(${h.id})">상세보기 →</button>
+      </div>
+    `;
+
+    marker.bindPopup(popupHtml, { maxWidth: 270, className: 'hotel-popup' });
+    markerClusterGroup.addLayer(marker);
+    markers.push(marker);
+  });
+
+  // 마커 범위 맞춤
+  if (markers.length > 0) {
+    const group = L.featureGroup(markers);
+    map.fitBounds(group.getBounds().pad(0.15));
+  }
+}
+
+
+
+// ──────────── 핫플레이스 데이터 ────────────
+const HOTSPOTS = [
+  // ── 신규 오픈 (2023~2025) ──
+  { id:'h1', name:'아자부다이 힐스', name_en:'Azabudai Hills', area:'Roppongi',
+    area_ko:'롯폰기', cat:'new', lat:35.6604, lng:139.7395,
+    desc:'2023년 오픈. 모리 JP 타워(330m) & 팀랩 보더리스 신관 입주. 도쿄 최신 랜드마크.',
+    tip:'🏙️ 팀랩 보더리스 2024년 2월 재오픈', tags:['신규2023','예술','쇼핑'],
+    december:'크리스마스 광장 대형 트리 설치', open:'10:00~21:00', price:'무료 입장(일부 유료)' },
+  { id:'h2', name:'가부키초 타워', name_en:'Kabukicho Tower', area:'Shinjuku',
+    area_ko:'신주쿠', cat:'new', lat:35.6960, lng:139.7041,
+    desc:'2023년 오픈. 지상 48층 복합 타워. 영화관·극장·레스토랑·호텔(벨루스타) 집약.',
+    tip:'🎭 1~7층 극장·영화관 유니크 체험', tags:['신규2023','엔터','야경'],
+    december:'크리스마스 미디어아트 파사드', open:'시설별 상이', price:'무료 입장(시설 이용 별도)' },
+  { id:'h3', name:'토라노몬 힐스 스테이션 타워', name_en:'Toranomon Hills Station Tower', area:'Toranomon',
+    area_ko:'도라노몬', cat:'new', lat:35.6672, lng:139.7497,
+    desc:'2023년 10월 오픈. 지하철역 직결 초고층 복합타워. SKY GALLERY 무료 전망.',
+    tip:'🌆 49층 무료 SKY GALLERY 추천', tags:['신규2023','전망','복합'],
+    december:'겨울 야경 360° 파노라마 뷰', open:'SKY GALLERY 11:00~20:00', price:'일부 무료' },
+  // ── 현재 가장 핫 ──
+  { id:'h4', name:'팀랩 플래닛 도요스', name_en:'teamLab Planets TOYOSU', area:'Toyosu',
+    area_ko:'도요스', cat:'art', lat:35.6478, lng:139.7859,
+    desc:'물 위를 맨발로 걷는 몰입형 디지털 아트. 도쿄 방문자 필수 체험 1위.',
+    tip:'🎟️ 사전 예약 필수! 2~3주 전 매진', tags:['예술','체험','인스타'],
+    december:'겨울 시즌 한정 작품 추가', open:'10:00~22:00', price:'₩30,000~35,000' },
+  { id:'h5', name:'시부야 스카이', name_en:'SHIBUYA SKY', area:'Shibuya',
+    area_ko:'시부야', cat:'view', lat:35.6582, lng:139.7031,
+    desc:'시부야 스크램블 스퀘어 옥상 230m 오픈에어 전망대. 도쿄 최고 야경 스팟.',
+    tip:'🌇 일몰 30분 전 입장하면 낮+야경 모두', tags:['야경','전망','인스타'],
+    december:'크리스마스 일루미네이션 연동 야경', open:'10:00~22:30', price:'₩22,000' },
+  { id:'h6', name:'나카메구로 일루미네이션', name_en:'Nakameguro Illumination', area:'Nakameguro',
+    area_ko:'나카메구로', cat:'dec', lat:35.6440, lng:139.6988,
+    desc:'메구로강 양쪽 약 800m에 약 15만 개 LED 점등. 도쿄 12월 최고 명소.',
+    tip:'✨ 12월 한정! 점등 16:30~22:00', tags:['12월한정','일루미','야경'],
+    december:'12월 초~12월 25일 한정 점등', open:'16:30~22:00 (12월)', price:'무료' },
+  { id:'h7', name:'오모테산도 일루미네이션', name_en:'Omotesando Illumination', area:'Omotesando',
+    area_ko:'오모테산도', cat:'dec', lat:35.6655, lng:139.7126,
+    desc:'케야키 가로수 약 150그루에 LED 점등. 고급스러운 크리스마스 분위기.',
+    tip:'🎄 도쿄에서 가장 우아한 크리스마스 거리', tags:['12월한정','일루미','쇼핑'],
+    december:'11월 말~12월 25일 매일 점등', open:'17:00~23:00 (12월)', price:'무료' },
+  { id:'h8', name:'마루노우치 일루미네이션', name_en:'Marunouchi Illumination', area:'Marunouchi',
+    area_ko:'마루노우치', cat:'dec', lat:35.6812, lng:139.7671,
+    desc:'도쿄역 앞 마루노우치 나카도리 샴페인 골드 일루미네이션. 약 170그루.',
+    tip:'📸 도쿄역 빨간 돔 + 일루미 콜라보 사진', tags:['12월한정','일루미','도쿄역'],
+    december:'11월 초~2월 중순 롱런 점등', open:'17:00~23:00', price:'무료' },
+  // ── 카페·음식 핫플 ──
+  { id:'h9', name:'긴자 식스 옥상 가든', name_en:'GINZA SIX Rooftop Garden', area:'Ginza',
+    area_ko:'긴자', cat:'view', lat:35.6693, lng:139.7640,
+    desc:'긴자 최대 쇼핑몰 6층 옥상 일본 정원. 시내 전망 무료 개방. 포토스팟.',
+    tip:'🌿 무료 입장. 주말 오전 비교적 한산', tags:['무료','전망','쇼핑'],
+    december:'크리스마스 장식 + 겨울 한정 음료 판매', open:'10:30~20:30', price:'무료' },
+  { id:'h10', name:'아메요코 & 우에노 연말 시장', name_en:'Ameyoko Year-end Market', area:'Ueno',
+    area_ko:'우에노', cat:'food', lat:35.7083, lng:139.7763,
+    desc:'연말 해산물·과일·의류 초특가 판매. 도쿄 연말 쇼핑 1번지.',
+    tip:'🦞 12/29~31 연말 특가 세일 절정!', tags:['연말한정','시장','맛집'],
+    december:'12월 연말 초특가 판매 시즌', open:'10:00~19:00', price:'무료 입장' },
+  { id:'h11', name:'쓰키지 장외시장 아침 투어', name_en:'Tsukiji Outer Market', area:'Tsukiji',
+    area_ko:'쓰키지', cat:'food', lat:35.6654, lng:139.7706,
+    desc:'세계 3대 수산시장. 갓 구운 오징어·대게·성게 스시를 아침에 즐기는 코스.',
+    tip:'🍣 오전 8~11시 방문이 가장 신선', tags:['맛집','아침','현지'],
+    december:'연말 고급 식재료 특별 판매', open:'05:00~14:00', price:'무료 입장(음식 별도)' },
+  { id:'h12', name:'도쿄 미드타운 크리스마스', name_en:'Tokyo Midtown Christmas', area:'Roppongi',
+    area_ko:'롯폰기', cat:'dec', lat:35.6655, lng:139.7312,
+    desc:'국내 최대급 크리스마스 일루미네이션. 잔디광장 설치 대형 트리.',
+    tip:'🎅 스타라이트 가든 일루미 15만 구 LED', tags:['12월한정','일루미','크리스마스'],
+    december:'11월 중순~12월 25일', open:'17:00~23:00 (12월)', price:'무료' },
+];
+
+let activeHotCat = 'all';
+
+function openHotspots() {
+  renderHotspotsModal();
+  openModal('hotspots-modal');
+}
+
+function filterHotCat(cat) {
+  activeHotCat = cat;
+  renderHotspotsModal();
+}
+
+const CAT_LABEL = { all:'전체', new:'신규오픈🆕', art:'예술·체험🎨', view:'전망·야경🌃', food:'맛집·시장🍜', dec:'12월한정🎄', shop:'쇼핑🛍️' };
+const BAND_COLOR = { new:'linear-gradient(90deg,#e53e3e,#fc8181)', art:'linear-gradient(90deg,#6b46c1,#b794f4)', view:'linear-gradient(90deg,#2b6cb0,#63b3ed)', food:'linear-gradient(90deg,#744210,#f6ad55)', dec:'linear-gradient(90deg,#c53030,#ed8936)', shop:'linear-gradient(90deg,#276749,#68d391)' };
+
+function renderHotspotsModal() {
+  const filtered = activeHotCat === 'all' ? HOTSPOTS : HOTSPOTS.filter(h => h.cat === activeHotCat);
+
+  const filterBtns = Object.keys(CAT_LABEL).map(c =>
+    `<button class="hot-filter-btn${activeHotCat===c?' active':''}" onclick="filterHotCat('${c}')">${CAT_LABEL[c]}</button>`
+  ).join('');
+
+  const cards = filtered.map(h => {
+    const band = BAND_COLOR[h.cat] || 'linear-gradient(90deg,#667eea,#764ba2)';
+    const tags = h.tags.map(t => `<span class="hotspot-cat ${h.cat}">${t}</span>`).join('');
+    const decLine = h.december
+      ? `<div style="font-size:.75rem;color:#e53e3e;font-weight:600;margin-top:5px;">🎄 ${h.december}</div>` : '';
+    return `
+      <div class="hotspot-card" onclick="flyToHotspot(${h.lat},${h.lng},'${h.name.replace(/'/g,"\'")}','${h.area_ko}')">
+        <div class="hotspot-card-band" style="background:${band}"></div>
+        <div class="hotspot-card-body">
+          <div class="hotspot-name">
+            ${h.name}
+            <span class="hot-badge">🔥 HOT</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+            <span class="hotspot-area-tag">📍 ${h.area_ko}</span>
+            <span style="font-size:.72rem;color:var(--text-muted);">⏰ ${h.open}</span>
+          </div>
+          <div class="hotspot-desc">${h.desc}</div>
+          <div class="hotspot-tip">${h.tip}</div>
+          ${decLine}
+          <div class="hotspot-meta">${tags}
+            <span class="hotspot-cat view" style="background:#edf2f7;color:#4a5568;">💴 ${h.price}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  document.getElementById('hotspots-modal-content').innerHTML = `
+    <div style="background:linear-gradient(135deg,#744210,#ed8936);color:white;padding:18px 24px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div style="font-size:1.15rem;font-weight:800;">🔥 도쿄 핫플레이스 ${HOTSPOTS.length}선</div>
+        <div style="font-size:.82rem;opacity:.85;margin-top:3px;">2024~2026 신규 오픈 & 현재 가장 핫한 스팟 · 카드 클릭 시 지도 이동</div>
+      </div>
+      <button class="modal-close" style="color:rgba(255,255,255,.8);" onclick="closeModal('hotspots-modal')">✕</button>
+    </div>
+    <div class="hot-filter-row">${filterBtns}</div>
+    <div style="font-size:.75rem;color:var(--text-muted);padding:8px 20px 0;">총 ${filtered.length}곳 표시</div>
+    <div class="hotspot-grid">${cards || '<div style="padding:40px;text-align:center;color:var(--text-muted);">해당 카테고리 핫플이 없습니다.</div>'}</div>
+    <div style="padding:0 20px 16px;">
+      <button class="itin-map-btn" onclick="showAllHotspotsOnMap()">🗺️ 전체 핫플 지도에서 보기</button>
+    </div>
+  `;
+}
+
+function flyToHotspot(lat, lng, name, area) {
+  closeModal('hotspots-modal');
+  switchView('map');
+  setTimeout(() => {
+    if (!map) initMap();
+    map.setView([lat, lng], 16);
+    const m = L.marker([lat, lng], {
+      icon: L.divIcon({
+        className:'',
+        html:`<div style="background:linear-gradient(135deg,#e53e3e,#ed8936);color:white;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);">🔥 ${name}</div>`,
+        iconAnchor:[0,24]
+      })
+    }).addTo(map)
+      .bindPopup(`<div style="font-family:-apple-system,sans-serif;"><strong>🔥 ${name}</strong><br><span style="color:#718096;font-size:.78rem;">📍 ${area}</span></div>`)
+      .openPopup();
+    itinAttractionMarkers.push(m);
+    setTimeout(() => { try { map.removeLayer(m); } catch(e){} }, 6000);
+  }, 300);
+}
+
+function showAllHotspotsOnMap() {
+  closeModal('hotspots-modal');
+  switchView('map');
+  setTimeout(() => {
+    if (!map) initMap();
+    itinAttractionMarkers.forEach(m => { try { map.removeLayer(m); } catch(e){} });
+    itinAttractionMarkers = [];
+    const bounds = [];
+    HOTSPOTS.forEach((h, i) => {
+      const icon = L.divIcon({
+        className:'',
+        html:`<div style="background:linear-gradient(135deg,#e53e3e,#ed8936);color:white;width:30px;height:30px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:13px;">🔥</div>`,
+        iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-32]
+      });
+      const m = L.marker([h.lat, h.lng], { icon })
+        .bindPopup(`<div style="font-family:-apple-system,sans-serif;min-width:200px;">
+          <div style="font-weight:800;font-size:.9rem;margin-bottom:4px;">🔥 ${h.name}</div>
+          <div style="font-size:.75rem;color:#718096;margin-bottom:4px;">📍 ${h.area_ko} · ⏰ ${h.open}</div>
+          <div style="font-size:.82rem;">${h.desc}</div>
+          <div style="font-size:.75rem;color:#ed8936;font-weight:600;margin-top:4px;">${h.tip}</div>
+          ${h.december ? `<div style="font-size:.72rem;color:#e53e3e;margin-top:3px;">🎄 ${h.december}</div>` : ''}
+        </div>`, { maxWidth:260 })
+        .addTo(map);
+      itinAttractionMarkers.push(m);
+      bounds.push([h.lat, h.lng]);
+    });
+    if (bounds.length) map.fitBounds(bounds, { padding:[40,40] });
+  }, 300);
+}
+
+// ──────────── 여행 일정 데이터 ────────────
+const ITINERARIES = {
+  Shinjuku: {
+    theme: "도심·전통·야경의 완벽한 조합",
+    days: [
+      {
+        label: "Day 1", subtitle: "신주쿠 핵심 탐방",
+        theme_text: "🏯 신주쿠 교엔 → 가부키초 → 오모이데 요코초",
+        slots: [
+          { time:"오전 09:00", place:"신주쿠 교엔 新宿御苑", desc:"넓은 일본식 정원 산책. 겨울 낙엽 & 맑은 하늘", walk:10, lat:35.6851,lng:139.7100, tags:["도보10분","공원"], tip:"", color:"#48bb78" },
+          { time:"오후 13:00", place:"이세탄 신주쿠 伊勢丹", desc:"일본 최고급 백화점. 크리스마스 디스플레이 화려", walk:8, lat:35.6916,lng:139.7040, tags:["쇼핑","도보8분"], tip:"🎄 12월 크리스마스 전시 기간", color:"#4299e1", december:true },
+          { time:"오후 15:30", place:"가부키초 歌舞伎町", desc:"도쿄 최대 유흥가 & 고질라상 포토스팟", walk:3, lat:35.6952,lng:139.7036, tags:["도보3분","관광"], tip:"", color:"#ed8936" },
+          { time:"저녁 18:00", place:"오모이데 요코초 思い出横丁", desc:"레트로 이자카야 골목. 야키토리·라멘 만끽", walk:5, lat:35.6930,lng:139.7000, tags:["맛집","도보5분"], tip:"🍢 신주쿠역 서쪽 출구 바로 옆", color:"#fc8181" },
+          { time:"저녁 20:00", place:"신주쿠 야경 展望台", desc:"도청 전망대(무료) 또는 파크 하얏트 탑 오브 도쿄 야경", walk:12, lat:35.6896,lng:139.6921, tags:["야경","무료"], tip:"💡 도쿄도청 전망대 무료 개방", color:"#9f7aea" }
+        ]
+      },
+      {
+        label: "Day 2", subtitle: "하라주쿠·오모테산도 & 메이지 신궁",
+        theme_text: "🌸 메이지 신궁 → 다케시타 거리 → 오모테산도 일루미네이션",
+        slots: [
+          { time:"오전 09:00", place:"메이지 신궁 明治神宮", desc:"도시 속 원시림. 겨울 아침 고요한 참배", walk:20, lat:35.6763,lng:139.6993, tags:["신사","도보20분"], tip:"🎍 신년 맞이 준비 분위기", color:"#48bb78" },
+          { time:"오전 11:00", place:"다케시타 거리 竹下通り", desc:"하라주쿠 트렌디 패션 거리 & 크레페", walk:5, lat:35.6714,lng:139.7034, tags:["쇼핑","도보5분"], tip:"", color:"#f6ad55" },
+          { time:"오후 13:30", place:"오모테산도 表参道", desc:"럭셔리 브랜드 거리. 정비된 가로수길 산책", walk:5, lat:35.6655,lng:139.7126, tags:["쇼핑","도보5분"], tip:"✨ 12월 오모테산도 일루미네이션 명소!", color:"#4299e1", december:true },
+          { time:"오후 16:00", place:"아오야마 묘지 & 카페 투어", desc:"아오야마 트렌디 카페 골목 탐방", walk:8, lat:35.6621,lng:139.7220, tags:["카페","도보8분"], tip:"☕ 인스타 감성 카페 밀집", color:"#fc8181" },
+          { time:"저녁 19:00", place:"신주쿠 골든가이 Golden Gai", desc:"좁은 골목 50+ 개성 넘치는 작은 바. 현지 분위기", walk:15, lat:35.6941,lng:139.7024, tags:["바","도보15분"], tip:"🍶 혼자 여행에도 좋은 분위기", color:"#9f7aea" }
+        ]
+      },
+      {
+        label: "Day 3", subtitle: "시부야 & 나카메구로",
+        theme_text: "🌊 나카메구로 일루미네이션 → 시부야 스크램블 → 시부야 스카이",
+        slots: [
+          { time:"오전 10:00", place:"나카메구로 中目黒", desc:"메구로강 산책. 갤러리·카페·빈티지 숍", walk:25, lat:35.6440,lng:139.6988, tags:["산책","전철25분"], tip:"✨ 12월 나카메구로 일루미네이션 명소!", color:"#48bb78", december:true },
+          { time:"오후 13:00", place:"다이칸야마 代官山", desc:"도쿄 힙한 동네. 츠타야 서점 & 브런치", walk:10, lat:35.6479,lng:139.7034, tags:["카페","도보10분"], tip:"📚 츠타야 서점 한 번은 꼭", color:"#f6ad55" },
+          { time:"오후 16:00", place:"시부야 스크램블 교차로", desc:"세계 최대 교차로. 주변 포토스팟 탐방", walk:15, lat:35.6595,lng:139.7004, tags:["관광","도보15분"], tip:"📸 시부야 엑셀 호텔 뷰 추천", color:"#4299e1" },
+          { time:"저녁 18:30", place:"시부야 스카이 SHIBUYA SKY", desc:"옥상 전망대에서 360° 도쿄 야경", walk:3, lat:35.6582,lng:139.7031, tags:["야경","도보3분"], tip:"🎟️ 사전 예약 필수! 야간이 압권", color:"#9f7aea" },
+          { time:"저녁 21:00", place:"시부야 도겐자카 道玄坂", desc:"노미야 골목에서 마무리 한 잔", walk:5, lat:35.6596,lng:139.6983, tags:["맛집","도보5분"], tip:"🍻 현지인들의 저녁 코스", color:"#fc8181" }
+        ]
+      }
+    ]
+  },
+  Shibuya: {
+    theme: "트렌드 & 라이프스타일의 중심",
+    days: [
+      {
+        label: "Day 1", subtitle: "시부야 & 다이칸야마",
+        theme_text: "🌆 시부야 스크램블 → 스카이 → 나카메구로 일루미",
+        slots: [
+          { time:"오전 10:00", place:"시부야 스크램블 교차로", desc:"도착하자마자 인증샷 필수 포인트", walk:1, lat:35.6595,lng:139.7004, tags:["관광","도보1분"], tip:"🎌 시부야역 하치코 출구 나오면 바로", color:"#e53e3e" },
+          { time:"오전 11:00", place:"다이칸야마 代官山", desc:"츠타야 북스 & 힙한 편집숍 탐방", walk:10, lat:35.6479,lng:139.7034, tags:["쇼핑","도보10분"], tip:"📚 'Tokyo's Coolest Neighborhood'", color:"#f6ad55" },
+          { time:"오후 13:00", place:"나카메구로 中目黒", desc:"메구로강 따라 카페 & 빈티지 숍 탐방", walk:10, lat:35.6440,lng:139.6988, tags:["산책","도보10분"], tip:"✨ 12월 일루미네이션 장관!", color:"#48bb78", december:true },
+          { time:"오후 16:00", place:"오모테산도 表参道", desc:"크리스마스 장식 가로수길 산책·쇼핑", walk:20, lat:35.6655,lng:139.7126, tags:["쇼핑","도보20분"], tip:"🎄 연말 특별 장식 기간", color:"#4299e1", december:true },
+          { time:"저녁 19:00", place:"시부야 스카이 SHIBUYA SKY", desc:"360° 야경 전망대. 황혼~야경 타이밍 최고", walk:3, lat:35.6582,lng:139.7031, tags:["야경","도보3분"], tip:"🌇 일몰 30분 전 입장 추천", color:"#9f7aea" }
+        ]
+      },
+      {
+        label: "Day 2", subtitle: "하라주쿠·신주쿠 당일 탐방",
+        theme_text: "🎠 메이지 신궁 → 하라주쿠 → 신주쿠 야경",
+        slots: [
+          { time:"오전 09:00", place:"메이지 신궁 明治神宮", desc:"하라주쿠 인근 숲 속 신사 참배", walk:15, lat:35.6763,lng:139.6993, tags:["신사","도보15분"], tip:"🌲 고요한 새벽 참배 추천", color:"#48bb78" },
+          { time:"오전 11:30", place:"하라주쿠 다케시타 거리", desc:"크레페 & 스트리트 패션 쇼핑", walk:5, lat:35.6714,lng:139.7034, tags:["쇼핑","도보5분"], tip:"🍓 크레페는 항상 줄 서야!", color:"#f6ad55" },
+          { time:"오후 14:00", place:"신주쿠 교엔 新宿御苑", desc:"광활한 정원 산책 및 피크닉", walk:15, lat:35.6851,lng:139.7100, tags:["공원","전철15분"], tip:"🌿 겨울에도 이국적인 온실 운영", color:"#48bb78" },
+          { time:"오후 17:00", place:"이세탄 신주쿠 伊勢丹", desc:"크리스마스 시즌 한정 선물·식품관 탐방", walk:10, lat:35.6916,lng:139.7040, tags:["쇼핑","도보10분"], tip:"🎁 연말 한정 포장 굿즈 인기", color:"#4299e1", december:true },
+          { time:"저녁 19:30", place:"오모이데 요코초 思い出横丁", desc:"레트로 이자카야에서 야키토리 한 꼬치", walk:12, lat:35.6930,lng:139.7000, tags:["맛집","도보12분"], tip:"🍢 현지인들의 단골 이자카야 거리", color:"#fc8181" }
+        ]
+      },
+      {
+        label: "Day 3", subtitle: "에비스·롯폰기 예술 기행",
+        theme_text: "🎨 에비스 맥주 박물관 → 롯폰기 힐스 → 야경",
+        slots: [
+          { time:"오전 11:00", place:"에비스 맥주 기념관 恵比寿ビール記念館", desc:"야마사키 맥주 역사 투어 & 시음", walk:15, lat:35.6466,lng:139.7135, tags:["문화","도보15분"], tip:"🍺 무료 투어 사전 예약 추천", color:"#f6ad55" },
+          { time:"오후 13:00", place:"에비스 가든플레이스", desc:"크리스마스 조명 & 바카라 シャンデリア 전시", walk:5, lat:35.6465,lng:139.7155, tags:["관광","도보5분"], tip:"✨ 12월 바카라 크리스탈 샹들리에!", color:"#fc8181", december:true },
+          { time:"오후 15:00", place:"롯폰기 힐스 六本木ヒルズ", desc:"모리 미술관 & 도쿄시티뷰 전망대", walk:25, lat:35.6604,lng:139.7292, tags:["미술관","전철25분"], tip:"🎨 모리 미술관 특별 전시 확인", color:"#9f7aea" },
+          { time:"저녁 18:00", place:"도쿄 미드타운 롯폰기", desc:"크리스마스 일루미네이션 산책", walk:8, lat:35.6655,lng:139.7312, tags:["야경","도보8분"], tip:"💡 12월 Midtown Christmas 이벤트", color:"#e53e3e", december:true },
+          { time:"저녁 20:00", place:"롯폰기 이자카야 거리", desc:"고급 이자카야에서 연말 분위기 만끽", walk:5, lat:35.6627,lng:139.7313, tags:["맛집","도보5분"], tip:"🥂 롯폰기 특유의 세련된 분위기", color:"#48bb78" }
+        ]
+      }
+    ]
+  },
+  Ginza: {
+    theme: "도쿄 최고급 문화·쇼핑·야경 루트",
+    days: [
+      {
+        label: "Day 1", subtitle: "긴자·마루노우치 명품 산책",
+        theme_text: "🛍️ 긴자 쇼핑 → 도쿄역 마루노우치 → 도쿄 타워",
+        slots: [
+          { time:"오전 10:00", place:"긴자 메인 거리 銀座メイン通り", desc:"세계적 명품 브랜드 쇼핑 & 윈도우 쇼핑", walk:3, lat:35.6718,lng:139.7641, tags:["쇼핑","도보3분"], tip:"🎄 연말 크리스마스 디스플레이 화려", color:"#4299e1", december:true },
+          { time:"오후 12:00", place:"긴자 식스 GINZA SIX", desc:"긴자 최대 복합 쇼핑몰. 옥상 정원 무료 개방", walk:5, lat:35.6693,lng:139.7640, tags:["쇼핑","도보5분"], tip:"🌿 옥상 무료 입장, 전망 좋음", color:"#f6ad55" },
+          { time:"오후 14:00", place:"도쿄역 마루노우치 구청사", desc:"아름다운 레트로 건축물 & 사진 명소", walk:15, lat:35.6812,lng:139.7671, tags:["관광","도보15분"], tip:"📸 크리스마스 일루미네이션 설치", color:"#48bb78", december:true },
+          { time:"오후 16:30", place:"하마리큐 정원 浜離宮恩賜庭園", desc:"도쿄만과 고층빌딩 배경의 전통 정원", walk:15, lat:35.6598,lng:139.7625, tags:["공원","도보15분"], tip:"🦢 해질녘 황금빛 경치 최고", color:"#48bb78" },
+          { time:"저녁 19:00", place:"도쿄 타워 東京タワー", desc:"33층·150m 전망대에서 야경 감상", walk:25, lat:35.6586,lng:139.7454, tags:["야경","전철25분"], tip:"🗼 12월 크리스마스 특별 라이팅!", color:"#9f7aea", december:true }
+        ]
+      },
+      {
+        label: "Day 2", subtitle: "아사쿠사·우에노 문화 기행",
+        theme_text: "⛩️ 센소지 → 스카이트리 → 우에노 일루미네이션",
+        slots: [
+          { time:"오전 09:00", place:"센소지 浅草寺", desc:"도쿄 최고 인기 사원. 카미나리몬 포토스팟", walk:30, lat:35.7148,lng:139.7967, tags:["신사","전철30분"], tip:"🏮 아침 일찍 가면 한적함", color:"#48bb78" },
+          { time:"오전 11:00", place:"나카미세 仲見世通り", desc:"전통 기념품·인형야키·닌교야키 거리", walk:3, lat:35.7139,lng:139.7953, tags:["쇼핑","도보3분"], tip:"🍡 닌교야키(인형빵) 꼭 맛보기", color:"#f6ad55" },
+          { time:"오후 13:00", place:"도쿄 스카이트리 東京スカイツリー", desc:"높이 634m. 도쿄 전체 파노라마 전망", walk:20, lat:35.7101,lng:139.8107, tags:["관광","전철20분"], tip:"☁️ 맑은 날 후지산까지 보임", color:"#9f7aea" },
+          { time:"오후 16:00", place:"우에노 공원 上野公園", desc:"박물관·동물원·연못. 겨울 일루미네이션", walk:25, lat:35.7164,lng:139.7713, tags:["공원","전철25분"], tip:"✨ 12월 Winter Illumination", color:"#fc8181", december:true },
+          { time:"저녁 18:30", place:"아메요코 시장 アメ横", desc:"우에노역 앞 재래시장. 저렴한 먹거리 천국", walk:5, lat:35.7083,lng:139.7763, tags:["맛집","도보5분"], tip:"🦐 연말 해산물·과일 쇼핑 인기", color:"#fc8181" }
+        ]
+      },
+      {
+        label: "Day 3", subtitle: "팀랩·오다이바 미래 체험",
+        theme_text: "🌊 팀랩 플래닛 → 오다이바 → 레인보우 브릿지 야경",
+        slots: [
+          { time:"오전 10:00", place:"teamLab Planets 팀랩 플래닛", desc:"물 위를 걷는 몰입형 디지털 아트 체험", walk:20, lat:35.6478,lng:139.7859, tags:["관광","전철20분"], tip:"🎟️ 사전 예약 필수! 줄 매우 김", color:"#9f7aea" },
+          { time:"오후 13:00", place:"오다이바 お台場", desc:"바닷가 쇼핑몰 & 자유의 여신상 복제품", walk:25, lat:35.6253,lng:139.7759, tags:["관광","전철25분"], tip:"🗽 오다이바 레인보우 브릿지 뷰", color:"#4299e1" },
+          { time:"오후 15:00", place:"도요스 시장 豊洲市場", desc:"세계 최대 수산시장 견학 & 스시 점심", walk:20, lat:35.6448,lng:139.7862, tags:["맛집","전철20분"], tip:"🍣 신선한 스시 최저가 보장", color:"#f6ad55" },
+          { time:"오후 17:30", place:"오다이바 덱스 도쿄 비치", desc:"크리스마스 마켓 & 쇼핑", walk:10, lat:35.6258,lng:139.7752, tags:["쇼핑","도보10분"], tip:"🎅 12월 크리스마스 마켓 개최", color:"#e53e3e", december:true },
+          { time:"저녁 19:30", place:"레인보우 브릿지 야경", desc:"도쿄만 & 레인보우 브릿지 야경 감상", walk:10, lat:35.6353,lng:139.7601, tags:["야경","도보10분"], tip:"🌉 도쿄 최고의 야경 포인트 중 하나", color:"#9f7aea" }
+        ]
+      }
+    ]
+  },
+  Asakusa: {
+    theme: "에도 문화와 도쿄의 뿌리",
+    days: [
+      {
+        label: "Day 1", subtitle: "아사쿠사 전통 탐방",
+        theme_text: "⛩️ 센소지 → 나카미세 → 스카이트리 → 스미다강 유람",
+        slots: [
+          { time:"오전 08:30", place:"센소지 새벽 참배 浅草寺", desc:"관광객 없는 고요한 새벽 참배 체험", walk:3, lat:35.7148,lng:139.7967, tags:["신사","도보3분"], tip:"🌅 새벽 6시~8시 가장 고요", color:"#48bb78" },
+          { time:"오전 10:00", place:"나카미세 & 아사쿠사 거리", desc:"전통 기념품·떡·닌교야키 쇼핑", walk:2, lat:35.7139,lng:139.7953, tags:["쇼핑","도보2분"], tip:"🍡 인형야키·뇨코 말차 아이스크림", color:"#f6ad55" },
+          { time:"오후 13:00", place:"도쿄 스카이트리 東京スカイツリー", desc:"634m 전망대 + 소라마치 쇼핑몰", walk:20, lat:35.7101,lng:139.8107, tags:["관광","도보20분"], tip:"☁️ 창문 없는 옥상 전망 스릴 만점", color:"#9f7aea" },
+          { time:"오후 15:30", place:"스미다 공원 隅田公園", desc:"스카이트리 배경 사진 명소. 겨울 산책", walk:10, lat:35.7113,lng:139.8008, tags:["공원","도보10분"], tip:"📸 스카이트리 & 강 배경 인생샷", color:"#48bb78" },
+          { time:"저녁 18:00", place:"카파바시 합羽橋道具街", desc:"주방용품·도자기·식품 샘플 거리. 요리 기념품", walk:15, lat:35.7161,lng:139.7900, tags:["쇼핑","도보15분"], tip:"🍽️ 세계적으로 유명한 부엌용품 거리", color:"#4299e1" }
+        ]
+      },
+      {
+        label: "Day 2", subtitle: "우에노 & 아키하바라",
+        theme_text: "🎨 우에노 박물관 → 아메요코 → 아키하바라 전기가",
+        slots: [
+          { time:"오전 10:00", place:"도쿄 국립 박물관 東京国立博物館", desc:"일본 최대 박물관. 국보급 문화재 전시", walk:20, lat:35.7188,lng:139.7763, tags:["문화","도보20분"], tip:"🏛️ 특별전 사전 예약 추천", color:"#9f7aea" },
+          { time:"오후 12:30", place:"우에노 공원 上野公園", desc:"12월 일루미네이션 & 연못 오리 구경", walk:5, lat:35.7164,lng:139.7713, tags:["공원","도보5분"], tip:"✨ 12월 스타라이트 일루미네이션", color:"#fc8181", december:true },
+          { time:"오후 14:00", place:"아메요코 시장 アメ横", desc:"재래시장 분위기 & 저렴한 간식 거리", walk:5, lat:35.7083,lng:139.7763, tags:["맛집","도보5분"], tip:"🦐 연말 해산물 & 과일 쇼핑 명소", color:"#f6ad55" },
+          { time:"오후 16:00", place:"아키하바라 秋葉原", desc:"전자제품·애니메이션·게임 천국", walk:25, lat:35.6985,lng:139.7726, tags:["쇼핑","전철25분"], tip:"🎮 라오스, 요도바시 카메라 필수 코스", color:"#4299e1" },
+          { time:"저녁 19:00", place:"아키하바라 라멘 골목", desc:"개성 넘치는 라멘 전문점 밀집", walk:5, lat:35.6993,lng:139.7718, tags:["맛집","도보5분"], tip:"🍜 쓰케멘·지로계 라멘 추천", color:"#fc8181" }
+        ]
+      },
+      {
+        label: "Day 3", subtitle: "긴자·도쿄 타워 코스",
+        theme_text: "🗼 쓰키지 아침 → 긴자 쇼핑 → 도쿄 타워 야경",
+        slots: [
+          { time:"오전 08:00", place:"쓰키지 장외시장 築地場外市場", desc:"신선한 해산물·조식 스시·다시마 쇼핑", walk:35, lat:35.6654,lng:139.7706, tags:["맛집","전철35분"], tip:"🍱 아침 9시~11시 가장 신선", color:"#f6ad55" },
+          { time:"오전 11:00", place:"하마리큐 정원 浜離宮", desc:"도쿄만 앞 전통 정원. 다도 체험", walk:10, lat:35.6598,lng:139.7625, tags:["공원","도보10분"], tip:"🍵 정원 내 다도 체험 500엔", color:"#48bb78" },
+          { time:"오후 13:30", place:"긴자 식스 & 메인 거리", desc:"크리스마스 시즌 긴자 쇼핑 & 카페", walk:15, lat:35.6718,lng:139.7641, tags:["쇼핑","도보15분"], tip:"🎄 긴자 일루미네이션 가로수 장관", color:"#4299e1", december:true },
+          { time:"오후 16:30", place:"증폭사 増上寺", desc:"도쿄 타워 정면에 위치한 사원. 포토스팟", walk:20, lat:35.6565,lng:139.7488, tags:["신사","도보20분"], tip:"📸 도쿄 타워+절 동시 구도 유명", color:"#48bb78" },
+          { time:"저녁 19:00", place:"도쿄 타워 夜景", desc:"크리스마스 특별 라이팅. 도쿄 야경의 상징", walk:5, lat:35.6586,lng:139.7454, tags:["야경","도보5분"], tip:"🗼 12월 크리스마스 특별 일루미!", color:"#9f7aea", december:true }
+        ]
+      }
+    ]
+  },
+  Akihabara: {
+    theme: "전통과 첨단 테크의 교차점",
+    days: [
+      {
+        label: "Day 1", subtitle: "아키하바라 완전 정복",
+        theme_text: "⚡ 전자가 쇼핑 → 아키바 문화 → 도쿄역 야경",
+        slots: [
+          { time:"오전 10:00", place:"요도바시 카메라 ヨドバシ", desc:"일본 최대 전자제품 매장. 면세 쇼핑", walk:3, lat:35.6998,lng:139.7718, tags:["쇼핑","도보3분"], tip:"💴 면세 10% + 포인트 적립 가능", color:"#4299e1" },
+          { time:"오후 12:00", place:"아키하바라 라디오 회관", desc:"피규어·애니·게임 전문 쇼핑 빌딩", walk:5, lat:35.6985,lng:139.7732, tags:["쇼핑","도보5분"], tip:"🎮 7층 건물 빼곡한 오타쿠 상점", color:"#9f7aea" },
+          { time:"오후 14:30", place:"아키하바라 메이드 카페 거리", desc:"독특한 일본 서브컬처 체험", walk:5, lat:35.6983,lng:139.7738, tags:["문화","도보5분"], tip:"🎀 처음 방문이라면 한 번쯤 경험", color:"#fc8181" },
+          { time:"오후 17:00", place:"도쿄역 マルの内 丸の内", desc:"레트로 도쿄역 외관 & 마루노우치 야경", walk:15, lat:35.6812,lng:139.7671, tags:["관광","전철15분"], tip:"🎄 크리스마스 일루미네이션 명소", color:"#f6ad55", december:true },
+          { time:"저녁 19:30", place:"야에스 지하 식품관", desc:"도쿄역 지하 전국 유명 음식 집합", walk:5, lat:35.6799,lng:139.7684, tags:["맛집","도보5분"], tip:"🍜 도쿄 라멘 스트리트 추천", color:"#fc8181" }
+        ]
+      },
+      {
+        label: "Day 2", subtitle: "우에노 & 아사쿠사 역사 기행",
+        theme_text: "🏛️ 우에노 박물관 → 아사쿠사 전통 → 스카이트리",
+        slots: [
+          { time:"오전 09:30", place:"도쿄 국립 박물관", desc:"일본 최고 국보급 전시. 국제관 포함", walk:15, lat:35.7188,lng:139.7763, tags:["문화","전철15분"], tip:"🎌 영어 오디오 가이드 무료", color:"#9f7aea" },
+          { time:"오후 12:00", place:"아메요코 & 우에노 공원", desc:"시장 구경 & 겨울 일루미네이션", walk:10, lat:35.7083,lng:139.7763, tags:["쇼핑","도보10분"], tip:"✨ 12월 일루미 점등 시간 확인", color:"#f6ad55", december:true },
+          { time:"오후 14:00", place:"센소지 浅草寺", desc:"도쿄 최고 인기 사원 & 나카미세 거리", walk:15, lat:35.7148,lng:139.7967, tags:["신사","전철15분"], tip:"🏮 카미나리몬 인증샷 필수", color:"#48bb78" },
+          { time:"오후 16:30", place:"도쿄 스카이트리", desc:"전망대 & 소라마치 쇼핑몰 탐방", walk:20, lat:35.7101,lng:139.8107, tags:["관광","도보20분"], tip:"🌃 해질녘 입장하면 낮+야경 모두 OK", color:"#9f7aea" },
+          { time:"저녁 19:00", place:"아사쿠사 이자카야 거리", desc:"전통 이자카야에서 생맥주 & 야키토리", walk:20, lat:35.7118,lng:139.7965, tags:["맛집","전철20분"], tip:"🍺 혼모키 거리 현지인 단골 多", color:"#fc8181" }
+        ]
+      },
+      {
+        label: "Day 3", subtitle: "긴자·마루노우치 고급 코스",
+        theme_text: "🛍️ 긴자 쇼핑 → 황궁 → 도쿄 타워",
+        slots: [
+          { time:"오전 10:00", place:"황궁 동어원 皇居東御苑", desc:"황궁 일부 공개 구역 무료 견학", walk:30, lat:35.6838,lng:139.7538, tags:["관광","전철30분"], tip:"🌳 겨울 고요한 정원 산책 추천", color:"#48bb78" },
+          { time:"오후 12:30", place:"마루노우치 레스토랑 거리", desc:"세련된 점심 & 크리스마스 거리 장식", walk:5, lat:35.6812,lng:139.7671, tags:["맛집","도보5분"], tip:"🎄 마루노우치 일루미네이션 최고!", color:"#4299e1", december:true },
+          { time:"오후 14:30", place:"긴자 식스 GINZA SIX", desc:"최고급 복합 쇼핑몰. 옥상 무료 개방", walk:15, lat:35.6693,lng:139.7640, tags:["쇼핑","도보15분"], tip:"🛍️ 면세 + 라운지 이용 가능", color:"#f6ad55" },
+          { time:"오후 16:30", place:"하마리큐 정원", desc:"도쿄만 & 고층 빌딩 배경 전통 정원", walk:10, lat:35.6598,lng:139.7625, tags:["공원","도보10분"], tip:"🌅 황혼빛 물 위 배경 사진", color:"#48bb78" },
+          { time:"저녁 19:00", place:"도쿄 타워 야경 東京タワー", desc:"크리스마스 특별 라이팅 감상", walk:20, lat:35.6586,lng:139.7454, tags:["야경","도보20분"], tip:"🗼 12월 한정 크리스마스 컬러 점등!", color:"#9f7aea", december:true }
+        ]
+      }
+    ]
+  },
+  Ikebukuro: {
+    theme: "쇼핑·엔터테인먼트·선샤인 시티",
+    days: [
+      {
+        label: "Day 1", subtitle: "이케부쿠로 완전 공략",
+        theme_text: "🎡 선샤인시티 → 파르코 → 이케부쿠로 일루미네이션",
+        slots: [
+          { time:"오전 10:00", place:"선샤인시티 サンシャインシティ", desc:"수족관·전망대·쇼핑몰 복합 시설", walk:5, lat:35.7291,lng:139.7188, tags:["관광","도보5분"], tip:"🐠 선샤인 수족관 + 전망대 세트권", color:"#9f7aea" },
+          { time:"오후 13:00", place:"이케부쿠로 파르코 PARCO", desc:"트렌디 패션 & 아트 복합 쇼핑몰", walk:10, lat:35.7296,lng:139.7089, tags:["쇼핑","도보10분"], tip:"🎨 지하 아트 갤러리 무료 관람", color:"#4299e1" },
+          { time:"오후 15:00", place:"도부 백화점 東武百貨店", desc:"이케부쿠로 최대 백화점. 지하 식품관 추천", walk:3, lat:35.7306,lng:139.7104, tags:["쇼핑","도보3분"], tip:"🍰 지하 케이크·화과자 선물 구입", color:"#f6ad55" },
+          { time:"오후 17:00", place:"이케부쿠로 크리스마스 일루미", desc:"이케부쿠로 서쪽 광장 대규모 일루미네이션", walk:5, lat:35.7295,lng:139.7109, tags:["야경","도보5분"], tip:"✨ 12월 전용 행사! 18:00 점등", color:"#e53e3e", december:true },
+          { time:"저녁 20:00", place:"이케부쿠로 이자카야 골목", desc:"사람 사는 냄새 나는 진짜 이자카야 거리", walk:5, lat:35.7285,lng:139.7121, tags:["맛집","도보5분"], tip:"🍖 신주쿠보다 덜 붐비고 저렴", color:"#fc8181" }
+        ]
+      },
+      {
+        label: "Day 2", subtitle: "신주쿠 & 하라주쿠 당일",
+        theme_text: "🌸 메이지 신궁 → 하라주쿠 → 신주쿠 야경",
+        slots: [
+          { time:"오전 09:00", place:"메이지 신궁 明治神宮", desc:"숲 속 신성한 공간 참배 & 산책", walk:25, lat:35.6763,lng:139.6993, tags:["신사","전철25분"], tip:"🌲 고요한 아침 숲 공기 만끽", color:"#48bb78" },
+          { time:"오전 11:00", place:"하라주쿠 다케시타 거리", desc:"도쿄 스트리트 패션 성지 & 크레페", walk:5, lat:35.6714,lng:139.7034, tags:["쇼핑","도보5분"], tip:"🍓 다양한 크레페 종류 시도", color:"#f6ad55" },
+          { time:"오후 13:00", place:"오모테산도 表参道", desc:"고급 브랜드 가로수길 & 크리스마스 일루미", walk:5, lat:35.6655,lng:139.7126, tags:["쇼핑","도보5분"], tip:"🎄 오모테산도 일루미네이션 명소", color:"#4299e1", december:true },
+          { time:"오후 16:00", place:"신주쿠 교엔 新宿御苑", desc:"겨울 정원 & 온실 무료 개방", walk:20, lat:35.6851,lng:139.7100, tags:["공원","전철20분"], tip:"🌿 온실에서 열대 식물 구경", color:"#48bb78" },
+          { time:"저녁 19:00", place:"도쿄도청 전망대 東京都庁", desc:"45층 무료 전망대에서 신주쿠 야경", walk:15, lat:35.6896,lng:139.6921, tags:["야경","도보15분"], tip:"💡 무료 야경 명소! 8시까지 운영", color:"#9f7aea" }
+        ]
+      },
+      {
+        label: "Day 3", subtitle: "야나카·니시오기쿠보 빈티지 투어",
+        theme_text: "🏘️ 야나카 옛 거리 → 요요기 공원 → 이케부쿠로 마무리",
+        slots: [
+          { time:"오전 10:00", place:"야나카 긴자 谷根千", desc:"에도 시대 골목 분위기. 빈티지 카페·공방", walk:30, lat:35.7233,lng:139.7654, tags:["관광","전철30분"], tip:"🏡 도쿄에서 가장 옛날 분위기 남은 곳", color:"#f6ad55" },
+          { time:"오후 12:00", place:"야나카 레이엔(묘지 공원)", desc:"오래된 묘지 공원이지만 벚꽃·단풍 명소", walk:5, lat:35.7210,lng:139.7666, tags:["산책","도보5분"], tip:"🍁 겨울엔 고요한 산책 코스", color:"#48bb78" },
+          { time:"오후 14:00", place:"니시오기쿠보 西荻窪", desc:"도쿄 최대 빈티지·앤틱 가게 밀집 거리", walk:40, lat:35.7055,lng:139.6030, tags:["쇼핑","전철40분"], tip:"🪑 앤틱 가구·그릇 보물 찾기", color:"#9f7aea" },
+          { time:"오후 16:30", place:"요요기 공원 代々木公園", desc:"넓은 공원 산책 & 겨울 축제 이벤트", walk:30, lat:35.6717,lng:139.6940, tags:["공원","전철30분"], tip:"🎪 12월 크리스마스 마켓 이벤트", color:"#fc8181", december:true },
+          { time:"저녁 19:00", place:"이케부쿠로 귀환 후 저녁", desc:"호텔 근처 이자카야에서 편안한 저녁", walk:25, lat:35.7295,lng:139.7109, tags:["맛집","전철25분"], tip:"🍺 이케부쿠로 로컬 맛집 탐방", color:"#f6ad55" }
+        ]
+      }
+    ]
+  },
+  Ueno: {
+    theme: "도쿄 문화·예술의 보고",
+    days: [
+      {
+        label: "Day 1", subtitle: "우에노 박물관·공원 집중 탐방",
+        theme_text: "🏛️ 국립 박물관 → 우에노 동물원 → 아메요코",
+        slots: [
+          { time:"오전 09:30", place:"도쿄 국립 박물관", desc:"일본 최대 박물관. 국보급 도자기·불상 전시", walk:5, lat:35.7188,lng:139.7763, tags:["문화","도보5분"], tip:"🎌 특별전은 반드시 사전 예약", color:"#9f7aea" },
+          { time:"오전 11:30", place:"우에노 동물원 上野動物園", desc:"일본 최초 동물원. 판다 인기 급상승", walk:5, lat:35.7165,lng:139.7714, tags:["관광","도보5분"], tip:"🐼 12월 겨울 동물원 일루미네이션 야간 개장", color:"#48bb78", december:true },
+          { time:"오후 14:00", place:"우에노 공원 上野公園", desc:"넓은 공원 산책 & 겨울 일루미네이션 감상", walk:5, lat:35.7164,lng:139.7713, tags:["공원","도보5분"], tip:"✨ 12월 Winter Illumination 점등 17시", color:"#fc8181", december:true },
+          { time:"오후 16:00", place:"아메요코 시장 アメ横", desc:"재래시장 & 해산물·과일·의류 저가 쇼핑", walk:5, lat:35.7083,lng:139.7763, tags:["쇼핑","도보5분"], tip:"🦞 연말 해산물 쇼핑 명소", color:"#f6ad55" },
+          { time:"저녁 18:30", place:"우에노 오카치마치 御徒町", desc:"서민적인 이자카야 & 저렴한 스시 거리", walk:5, lat:35.7075,lng:139.7748, tags:["맛집","도보5분"], tip:"🍣 도쿄 최저가 스시 맛집 밀집", color:"#fc8181" }
+        ]
+      },
+      {
+        label: "Day 2", subtitle: "아사쿠사 & 스카이트리",
+        theme_text: "⛩️ 센소지 전통 → 스카이트리 → 나카미세",
+        slots: [
+          { time:"오전 09:00", place:"센소지 浅草寺", desc:"도쿄 대표 사원 & 카미나리몬 포토스팟", walk:20, lat:35.7148,lng:139.7967, tags:["신사","전철20분"], tip:"🏮 오미쿠지(운세 뽑기) 체험", color:"#48bb78" },
+          { time:"오전 11:00", place:"나카미세 仲見世通り", desc:"전통 과자·기념품·유카타 쇼핑", walk:3, lat:35.7139,lng:139.7953, tags:["쇼핑","도보3분"], tip:"🍡 인형야키 갓 구운 것 맛보기", color:"#f6ad55" },
+          { time:"오후 13:30", place:"도쿄 스카이트리 東京スカイツリー", desc:"세계 최고 자립식 타워. 소라마치도 필수", walk:20, lat:35.7101,lng:139.8107, tags:["관광","도보20분"], tip:"☁️ 맑은 날 후지산 조망 가능", color:"#9f7aea" },
+          { time:"오후 16:30", place:"스카이트리 소라마치 ソラマチ", desc:"쇼핑·맛집·크리스마스 마켓 집합소", walk:3, lat:35.7102,lng:139.8103, tags:["쇼핑","도보3분"], tip:"🎅 12월 소라마치 크리스마스 이벤트", color:"#e53e3e", december:true },
+          { time:"저녁 19:00", place:"아사쿠사 이자카야 거리", desc:"전통 이자카야 거리에서 마무리 저녁", walk:20, lat:35.7118,lng:139.7965, tags:["맛집","전철20분"], tip:"🍺 호피도리 거리 추천", color:"#fc8181" }
+        ]
+      },
+      {
+        label: "Day 3", subtitle: "아키하바라 & 도쿄역 코스",
+        theme_text: "⚡ 아키하바라 전기가 → 도쿄역 → 마루노우치",
+        slots: [
+          { time:"오전 10:00", place:"아키하바라 秋葉原", desc:"전자제품·피규어·게임 쇼핑 천국", walk:15, lat:35.6985,lng:139.7726, tags:["쇼핑","전철15분"], tip:"💴 면세 쇼핑 여권 필수 지참", color:"#4299e1" },
+          { time:"오후 13:00", place:"도쿄역 야에스 지하", desc:"전국 각지 유명 맛집 집결 푸드코트", walk:15, lat:35.6799,lng:139.7684, tags:["맛집","전철15분"], tip:"🍜 도쿄 라멘 스트리트 필수 코스", color:"#f6ad55" },
+          { time:"오후 15:00", place:"마루노우치 仲通り", desc:"크리스마스 일루미네이션 명소 산책", walk:5, lat:35.6812,lng:139.7671, tags:["관광","도보5분"], tip:"✨ 12월 마루노우치 일루미 압도적!", color:"#4299e1", december:true },
+          { time:"오후 17:00", place:"황궁 皇居外苑", desc:"황궁 외원 산책 & 이중교 포토스팟", walk:10, lat:35.6838,lng:139.7538, tags:["관광","도보10분"], tip:"📸 이중교 배경 사진 인기", color:"#48bb78" },
+          { time:"저녁 19:00", place:"히비야 공원 일루미네이션", desc:"12월 히비야 크리스마스 마켓 & 일루미", walk:15, lat:35.6733,lng:139.7592, tags:["야경","도보15분"], tip:"🎄 히비야 크리스마스 마켓 명소", color:"#e53e3e", december:true }
+        ]
+      }
+    ]
+  }
+};
+
+let activeItinHotel = null;
+let activeDay = 0;
+let itinAttractionMarkers = [];
+// ──────────── 데이터 로드 ────────────
+let hotels = [];
+let compareList = [];
+let exchangeRate = 9.5;
+let currentView = 'card';
+let map = null;
+let markers = [];
+let markerClusterGroup = null;
+
+// 지역 색상
+const AREA_MARKER_COLORS = {
+  Shinjuku: '#667eea', Shibuya: '#f5576c', Ginza: '#00b4db',
+  Asakusa: '#43e97b', Akihabara: '#fa709a', Ikebukuro: '#a18cd1', Ueno: '#fccb90'
+};
+const AREA_KO_MAP = {
+  Shinjuku:'신주쿠', Shibuya:'시부야', Ginza:'긴자',
+  Asakusa:'아사쿠사', Akihabara:'아키하바라', Ikebukuro:'이케부쿠로', Ueno:'우에노'
+};
+
+// 호텔 데이터 인라인 내장 (file:// 프로토콜 호환)
+const HOTELS_DATA = {"meta": {"generated": "2026-06-08", "currency_rate": {"JPY_to_KRW": 9.5, "note": "환율은 주기적으로 업데이트 필요 (2026년 6월 기준)"}, "target_month": "2026-12", "area": "Tokyo"}, "hotels": [{"id": 1, "name": "Hotel Gracery Shinjuku", "name_ko": "호텔 그레이서리 신주쿠", "area": "Shinjuku", "address": "1-19-1 Kabukicho, Shinjuku, Tokyo", "stars": 4, "price_jpy": 24000, "price_krw": 228000, "rating": 8.6, "review_count": 3241, "category_ratings": {"cleanliness": 8.8, "location": 9.4, "value": 8.2, "service": 8.5, "comfort": 8.6}, "distances_min_walk": {"shinjuku": 3, "shibuya": 20, "tokyo": 30, "ueno": 35, "ikebukuro": 15}, "nearest_station": "Shinjuku Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "restaurant", "bar", "concierge"], "breakfast_included": false, "lat": 35.695, "lng": 139.7034, "booking_url": "https://www.booking.com/hotel/jp/gracery-shinjuku.html", "highlight": "고질라 헤드 조각상으로 유명, 가부키초 중심", "review_summary": "신주쿠 최중심 위치, 관광 접근성 최고. 객실은 다소 작지만 가성비 우수."}, {"id": 2, "name": "Keio Plaza Hotel Tokyo", "name_ko": "케이오 플라자 호텔 도쿄", "area": "Shinjuku", "address": "2-2-1 Nishi-Shinjuku, Shinjuku, Tokyo", "stars": 5, "price_jpy": 28000, "price_krw": 266000, "rating": 8.4, "review_count": 5102, "category_ratings": {"cleanliness": 8.9, "location": 9.2, "value": 7.8, "service": 8.7, "comfort": 8.8}, "distances_min_walk": {"shinjuku": 5, "shibuya": 20, "tokyo": 28, "ueno": 33, "ikebukuro": 13}, "nearest_station": "Shinjuku Station", "nearest_station_walk_min": 5, "amenities": ["wifi", "restaurant", "bar", "gym", "spa", "pool", "concierge", "business_center"], "breakfast_included": false, "lat": 35.6896, "lng": 139.6921, "booking_url": "https://www.booking.com/hotel/jp/keio-plaza-hotel-tokyo.html", "highlight": "신주쿠 서쪽 고층 호텔, 후지산 전망 가능", "review_summary": "시설 수준 높고 서비스 친절. 레스토랑 다양. 5성급 중 합리적 가격대."}, {"id": 3, "name": "Shinjuku Washington Hotel Main", "name_ko": "신주쿠 워싱턴 호텔 메인", "area": "Shinjuku", "address": "3-2-9 Nishi-Shinjuku, Shinjuku, Tokyo", "stars": 3, "price_jpy": 20000, "price_krw": 190000, "rating": 8.1, "review_count": 4231, "category_ratings": {"cleanliness": 8.2, "location": 9.0, "value": 8.5, "service": 7.9, "comfort": 8.0}, "distances_min_walk": {"shinjuku": 7, "shibuya": 22, "tokyo": 30, "ueno": 35, "ikebukuro": 14}, "nearest_station": "Shinjuku Station", "nearest_station_walk_min": 7, "amenities": ["wifi", "restaurant", "concierge"], "breakfast_included": false, "lat": 35.6878, "lng": 139.6908, "booking_url": "https://www.booking.com/hotel/jp/shinjuku-washington-main.html", "highlight": "가성비 좋은 비즈니스 호텔, 신주쿠 서쪽", "review_summary": "비즈니스 여행자에게 인기. 깔끔하고 위치 좋음. 객실 크기 보통."}, {"id": 4, "name": "Cerulean Tower Tokyu Hotel", "name_ko": "세룰리안 타워 도큐 호텔", "area": "Shibuya", "address": "26-1 Sakuragaokacho, Shibuya, Tokyo", "stars": 5, "price_jpy": 30000, "price_krw": 285000, "rating": 8.8, "review_count": 2876, "category_ratings": {"cleanliness": 9.1, "location": 9.0, "value": 7.9, "service": 9.0, "comfort": 9.1}, "distances_min_walk": {"shinjuku": 15, "shibuya": 3, "tokyo": 25, "ueno": 30, "ikebukuro": 20}, "nearest_station": "Shibuya Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "restaurant", "bar", "gym", "spa", "concierge", "jazz_bar"], "breakfast_included": false, "lat": 35.6561, "lng": 139.7005, "booking_url": "https://www.booking.com/hotel/jp/cerulean-tower-tokyu.html", "highlight": "시부야 최고급 호텔, 재즈 바 유명", "review_summary": "시부야 역 도보 3분. 재즈 바와 뷰 레스토랑 인상적. 5성 중 최상의 위치."}, {"id": 5, "name": "Shibuya Excel Hotel Tokyu", "name_ko": "시부야 엑셀 호텔 도큐", "area": "Shibuya", "address": "1-12-2 Dogenzaka, Shibuya, Tokyo", "stars": 4, "price_jpy": 25000, "price_krw": 237500, "rating": 8.5, "review_count": 3567, "category_ratings": {"cleanliness": 8.6, "location": 9.5, "value": 8.1, "service": 8.4, "comfort": 8.5}, "distances_min_walk": {"shinjuku": 15, "shibuya": 1, "tokyo": 25, "ueno": 30, "ikebukuro": 20}, "nearest_station": "Shibuya Station", "nearest_station_walk_min": 1, "amenities": ["wifi", "restaurant", "bar", "concierge"], "breakfast_included": false, "lat": 35.6594, "lng": 139.6991, "booking_url": "https://www.booking.com/hotel/jp/shibuya-excel-tokyu.html", "highlight": "시부야 스크램블 교차로 직결, 최고 위치", "review_summary": "시부야 역 1분 거리. 창문에서 스크램블 교차로 뷰. 위치 하나만으로 선택 가능."}, {"id": 6, "name": "Hotel Metropolitan Tokyo Ikebukuro", "name_ko": "호텔 메트로폴리탄 도쿄 이케부쿠로", "area": "Ikebukuro", "address": "1-6-1 Nishi-Ikebukuro, Toshima, Tokyo", "stars": 4, "price_jpy": 22000, "price_krw": 209000, "rating": 8.3, "review_count": 2934, "category_ratings": {"cleanliness": 8.5, "location": 9.3, "value": 8.4, "service": 8.2, "comfort": 8.3}, "distances_min_walk": {"shinjuku": 13, "shibuya": 23, "tokyo": 22, "ueno": 18, "ikebukuro": 1}, "nearest_station": "Ikebukuro Station", "nearest_station_walk_min": 1, "amenities": ["wifi", "restaurant", "bar", "gym", "concierge"], "breakfast_included": false, "lat": 35.729, "lng": 139.7109, "booking_url": "https://www.booking.com/hotel/jp/metropolitan-tokyo.html", "highlight": "이케부쿠로역 직결, 쇼핑 편의성 최고", "review_summary": "이케부쿠로역 바로 옆. 선샤인시티 도보 5분. 신주쿠/시부야보다 덜 붐비는 위치."}, {"id": 7, "name": "The Gate Hotel Asakusa by HULIC", "name_ko": "더 게이트 호텔 아사쿠사", "area": "Asakusa", "address": "2-16-11 Kaminarimon, Taito, Tokyo", "stars": 4, "price_jpy": 26000, "price_krw": 247000, "rating": 9.0, "review_count": 2154, "category_ratings": {"cleanliness": 9.2, "location": 9.1, "value": 8.5, "service": 9.1, "comfort": 9.0}, "distances_min_walk": {"shinjuku": 35, "shibuya": 40, "tokyo": 20, "ueno": 12, "ikebukuro": 25}, "nearest_station": "Asakusa Station", "nearest_station_walk_min": 2, "amenities": ["wifi", "restaurant", "bar", "rooftop_bar", "concierge"], "breakfast_included": false, "lat": 35.7111, "lng": 139.7955, "booking_url": "https://www.booking.com/hotel/jp/the-gate-asakusa.html", "highlight": "카미나리몬 바로 앞, 루프탑 바에서 스카이트리 뷰", "review_summary": "아사쿠사 분위기 최고. 루프탑에서 스카이트리 야경 감동. 전통 관광지와 최고의 조합."}, {"id": 8, "name": "Richmond Hotel Tokyo Akihabara", "name_ko": "리치몬드 호텔 도쿄 아키하바라", "area": "Akihabara", "address": "1-7-12 Sotokanda, Chiyoda, Tokyo", "stars": 4, "price_jpy": 21000, "price_krw": 199500, "rating": 8.4, "review_count": 1876, "category_ratings": {"cleanliness": 8.7, "location": 9.0, "value": 8.6, "service": 8.3, "comfort": 8.4}, "distances_min_walk": {"shinjuku": 25, "shibuya": 30, "tokyo": 10, "ueno": 10, "ikebukuro": 20}, "nearest_station": "Akihabara Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "restaurant", "concierge"], "breakfast_included": true, "lat": 35.6985, "lng": 139.7726, "booking_url": "https://www.booking.com/hotel/jp/richmond-akihabara.html", "highlight": "아키하바라·도쿄역 중간 위치, 조식 포함", "review_summary": "조식 포함에 가격 합리적. 아키하바라 쇼핑과 도쿄역 접근 모두 편리."}, {"id": 9, "name": "Hotel Monterey Ginza", "name_ko": "호텔 몬테레이 긴자", "area": "Ginza", "address": "2-10-2 Ginza, Chuo, Tokyo", "stars": 4, "price_jpy": 27000, "price_krw": 256500, "rating": 8.2, "review_count": 2045, "category_ratings": {"cleanliness": 8.4, "location": 9.2, "value": 7.8, "service": 8.1, "comfort": 8.3}, "distances_min_walk": {"shinjuku": 30, "shibuya": 30, "tokyo": 12, "ueno": 20, "ikebukuro": 35}, "nearest_station": "Ginza Station", "nearest_station_walk_min": 4, "amenities": ["wifi", "restaurant", "bar", "concierge"], "breakfast_included": false, "lat": 35.6714, "lng": 139.7671, "booking_url": "https://www.booking.com/hotel/jp/monterey-ginza.html", "highlight": "긴자 메인스트리트 도보 3분, 쇼핑 천국", "review_summary": "긴자 쇼핑가 중심. 유럽풍 인테리어. 가격 대비 위치 만족도 높음."}, {"id": 10, "name": "Mercure Tokyo Ginza", "name_ko": "머큐어 도쿄 긴자", "area": "Ginza", "address": "2-9-4 Ginza, Chuo, Tokyo", "stars": 4, "price_jpy": 23000, "price_krw": 218500, "rating": 8.3, "review_count": 3102, "category_ratings": {"cleanliness": 8.5, "location": 9.1, "value": 8.2, "service": 8.2, "comfort": 8.3}, "distances_min_walk": {"shinjuku": 30, "shibuya": 30, "tokyo": 12, "ueno": 20, "ikebukuro": 35}, "nearest_station": "Ginza Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "restaurant", "bar", "concierge"], "breakfast_included": false, "lat": 35.6718, "lng": 139.7665, "booking_url": "https://www.booking.com/hotel/jp/mercure-tokyo-ginza.html", "highlight": "긴자 위치에 합리적 가격, 아코르 멤버십 혜택", "review_summary": "긴자 지역 중 가성비 최고. 모던한 인테리어. 아코르 포인트 적립 가능."}, {"id": 11, "name": "APA Hotel Shinjuku-Kabukicho Tower", "name_ko": "APA 호텔 신주쿠-가부키초 타워", "area": "Shinjuku", "address": "1-19-7 Kabukicho, Shinjuku, Tokyo", "stars": 3, "price_jpy": 18000, "price_krw": 171000, "rating": 7.8, "review_count": 5432, "category_ratings": {"cleanliness": 7.9, "location": 9.3, "value": 8.8, "service": 7.5, "comfort": 7.7}, "distances_min_walk": {"shinjuku": 4, "shibuya": 20, "tokyo": 30, "ueno": 35, "ikebukuro": 15}, "nearest_station": "Shinjuku Station", "nearest_station_walk_min": 4, "amenities": ["wifi", "restaurant", "sauna"], "breakfast_included": false, "lat": 35.6953, "lng": 139.7036, "booking_url": "https://www.booking.com/hotel/jp/apa-shinjuku-kabukicho.html", "highlight": "가부키초 중심, 고층 사우나 인기", "review_summary": "위치 최고, 가격 저렴. 객실 작지만 청결. 고층 사우나에서 도쿄 야경 볼 수 있음."}, {"id": 12, "name": "Dormy Inn Shinjuku", "name_ko": "도미인 신주쿠", "area": "Shinjuku", "address": "2-17-7 Shinjuku, Shinjuku, Tokyo", "stars": 3, "price_jpy": 19500, "price_krw": 185250, "rating": 8.7, "review_count": 4123, "category_ratings": {"cleanliness": 9.0, "location": 8.8, "value": 9.0, "service": 8.6, "comfort": 8.5}, "distances_min_walk": {"shinjuku": 8, "shibuya": 22, "tokyo": 30, "ueno": 33, "ikebukuro": 16}, "nearest_station": "Shinjuku-gyoenmae Station", "nearest_station_walk_min": 2, "amenities": ["wifi", "hot_spring_bath", "free_ramen_night", "laundry"], "breakfast_included": false, "lat": 35.6883, "lng": 139.7088, "booking_url": "https://www.booking.com/hotel/jp/dormy-inn-shinjuku.html", "highlight": "무료 야식 라멘 서비스, 천연온천", "review_summary": "밤에 무료 라멘 제공! 천연온천 있음. 가성비 최고 체인. 한국인 여행자에게 매우 인기."}, {"id": 13, "name": "Hotel Century Southern Tower", "name_ko": "호텔 센추리 서던 타워", "area": "Shinjuku", "address": "2-2-1 Yoyogi, Shibuya, Tokyo", "stars": 4, "price_jpy": 26000, "price_krw": 247000, "rating": 8.7, "review_count": 3456, "category_ratings": {"cleanliness": 8.9, "location": 9.3, "value": 8.2, "service": 8.8, "comfort": 8.9}, "distances_min_walk": {"shinjuku": 3, "shibuya": 18, "tokyo": 28, "ueno": 32, "ikebukuro": 16}, "nearest_station": "Shinjuku Station (South Exit)", "nearest_station_walk_min": 3, "amenities": ["wifi", "restaurant", "bar", "gym", "concierge"], "breakfast_included": false, "lat": 35.6845, "lng": 139.6993, "booking_url": "https://www.booking.com/hotel/jp/century-southern-tower.html", "highlight": "신주쿠 남쪽 출구 직결, 전층 시티뷰", "review_summary": "신주쿠역 남쪽 출구 연결. 전 객실 도시 전망. 야경이 특히 아름다움."}, {"id": 14, "name": "Hilton Tokyo", "name_ko": "힐튼 도쿄", "area": "Shinjuku", "address": "6-6-2 Nishi-Shinjuku, Shinjuku, Tokyo", "stars": 5, "price_jpy": 31000, "price_krw": 294500, "rating": 8.5, "review_count": 6234, "category_ratings": {"cleanliness": 8.8, "location": 8.9, "value": 7.6, "service": 8.7, "comfort": 8.9}, "distances_min_walk": {"shinjuku": 10, "shibuya": 22, "tokyo": 30, "ueno": 35, "ikebukuro": 18}, "nearest_station": "Tochomae Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "restaurant", "bar", "gym", "pool", "spa", "concierge", "business_center"], "breakfast_included": false, "lat": 35.6907, "lng": 139.6877, "booking_url": "https://www.booking.com/hotel/jp/hilton-tokyo.html", "highlight": "도쿄도청 옆 글로벌 5성급 호텔", "review_summary": "힐튼 멤버십 혜택 적용 시 가성비 향상. 넓은 객실과 수영장 보유. 글로벌 서비스 수준."}, {"id": 15, "name": "Asakusa View Hotel", "name_ko": "아사쿠사 뷰 호텔", "area": "Asakusa", "address": "3-17-1 Nishi-Asakusa, Taito, Tokyo", "stars": 4, "price_jpy": 22000, "price_krw": 209000, "rating": 8.1, "review_count": 1987, "category_ratings": {"cleanliness": 8.2, "location": 8.8, "value": 8.0, "service": 8.0, "comfort": 8.1}, "distances_min_walk": {"shinjuku": 38, "shibuya": 42, "tokyo": 22, "ueno": 15, "ikebukuro": 28}, "nearest_station": "Tawaramachi Station", "nearest_station_walk_min": 5, "amenities": ["wifi", "restaurant", "bar", "gym", "concierge"], "breakfast_included": false, "lat": 35.7153, "lng": 139.794, "booking_url": "https://www.booking.com/hotel/jp/asakusa-view.html", "highlight": "아사쿠사 전통 지역 내 고층 호텔", "review_summary": "아사쿠사 센소지와 스카이트리 모두 가깝. 전통 분위기 속 편안한 숙박."}, {"id": 16, "name": "Dormy Inn Tokyo Hatchobori", "name_ko": "도미인 도쿄 핫초보리", "area": "Ginza", "address": "5-3-4 Hatchobori, Chuo, Tokyo", "stars": 3, "price_jpy": 20000, "price_krw": 190000, "rating": 8.8, "review_count": 2876, "category_ratings": {"cleanliness": 9.1, "location": 8.7, "value": 9.1, "service": 8.7, "comfort": 8.6}, "distances_min_walk": {"shinjuku": 30, "shibuya": 30, "tokyo": 10, "ueno": 20, "ikebukuro": 32}, "nearest_station": "Hatchobori Station", "nearest_station_walk_min": 2, "amenities": ["wifi", "hot_spring_bath", "free_ramen_night", "sauna", "laundry"], "breakfast_included": false, "lat": 35.6726, "lng": 139.7762, "booking_url": "https://www.booking.com/hotel/jp/dormy-inn-hatchobori.html", "highlight": "도미인 체인 특유의 온천·라멘 서비스", "review_summary": "긴자/도쿄역 근처에서 도미인 경험 가능. 가성비 최상. 야식 라멘 인기."}, {"id": 17, "name": "Shinjuku Granbell Hotel", "name_ko": "신주쿠 그랜벨 호텔", "area": "Shinjuku", "address": "2-14-5 Kabukicho, Shinjuku, Tokyo", "stars": 4, "price_jpy": 21000, "price_krw": 199500, "rating": 8.3, "review_count": 1654, "category_ratings": {"cleanliness": 8.5, "location": 9.2, "value": 8.3, "service": 8.1, "comfort": 8.2}, "distances_min_walk": {"shinjuku": 5, "shibuya": 20, "tokyo": 30, "ueno": 35, "ikebukuro": 15}, "nearest_station": "Shinjuku Station", "nearest_station_walk_min": 5, "amenities": ["wifi", "bar", "rooftop_terrace", "concierge"], "breakfast_included": false, "lat": 35.6957, "lng": 139.7045, "booking_url": "https://www.booking.com/hotel/jp/shinjuku-granbell.html", "highlight": "루프탑 테라스, 트렌디한 디자인 호텔", "review_summary": "가부키초 안의 세련된 부티크 호텔. 루프탑 바 인기. 젊은 여행자에게 인기 많음."}, {"id": 18, "name": "Cross Hotel Tokyo", "name_ko": "크로스 호텔 도쿄", "area": "Asakusa", "address": "3-1-3 Asakusa, Taito, Tokyo", "stars": 4, "price_jpy": 24000, "price_krw": 228000, "rating": 8.6, "review_count": 1432, "category_ratings": {"cleanliness": 8.8, "location": 9.0, "value": 8.4, "service": 8.5, "comfort": 8.6}, "distances_min_walk": {"shinjuku": 38, "shibuya": 42, "tokyo": 20, "ueno": 12, "ikebukuro": 27}, "nearest_station": "Asakusa Station", "nearest_station_walk_min": 4, "amenities": ["wifi", "restaurant", "bar", "hot_spring_bath", "sauna"], "breakfast_included": false, "lat": 35.7118, "lng": 139.7965, "booking_url": "https://www.booking.com/hotel/jp/cross-asakusa.html", "highlight": "아사쿠사 중심, 천연온천 보유", "review_summary": "아사쿠사 전통 지역 중심. 온천탕에서 피로 해소. 관광 후 휴식에 최적."}, {"id": 19, "name": "Hotel Sunroute Plaza Shinjuku", "name_ko": "호텔 선루트 플라자 신주쿠", "area": "Shinjuku", "address": "2-3-1 Yoyogi, Shibuya, Tokyo", "stars": 4, "price_jpy": 20500, "price_krw": 194750, "rating": 8.2, "review_count": 3876, "category_ratings": {"cleanliness": 8.4, "location": 9.1, "value": 8.5, "service": 8.0, "comfort": 8.2}, "distances_min_walk": {"shinjuku": 4, "shibuya": 18, "tokyo": 28, "ueno": 32, "ikebukuro": 16}, "nearest_station": "Shinjuku Station (South Exit)", "nearest_station_walk_min": 4, "amenities": ["wifi", "restaurant", "bar", "concierge", "laundry"], "breakfast_included": false, "lat": 35.6847, "lng": 139.699, "booking_url": "https://www.booking.com/hotel/jp/sunroute-plaza-shinjuku.html", "highlight": "신주쿠 남쪽, 합리적 가격의 4성급", "review_summary": "신주쿠 남쪽 출구 근처. 가격 대비 시설 양호. 신주쿠역 접근 매우 편리."}, {"id": 20, "name": "Citadines Shinjuku Tokyo", "name_ko": "시타딘 신주쿠 도쿄", "area": "Shinjuku", "address": "6-8-1 Shinjuku, Shinjuku, Tokyo", "stars": 4, "price_jpy": 25500, "price_krw": 242250, "rating": 8.4, "review_count": 1234, "category_ratings": {"cleanliness": 8.6, "location": 8.9, "value": 8.1, "service": 8.3, "comfort": 8.5}, "distances_min_walk": {"shinjuku": 8, "shibuya": 20, "tokyo": 28, "ueno": 32, "ikebukuro": 16}, "nearest_station": "Shinjuku-sanchome Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "kitchenette", "laundry", "gym", "concierge"], "breakfast_included": false, "lat": 35.6892, "lng": 139.7089, "booking_url": "https://www.booking.com/hotel/jp/citadines-shinjuku-tokyo.html", "highlight": "주방 완비 아파트 호텔, 장기 체류 적합", "review_summary": "주방 있어 장기 체류에 편리. 신주쿠 3초메 근처. 이자카야 골목 걸어서 5분."}, {"id": 21, "name": "Ueno First City Hotel", "name_ko": "우에노 퍼스트 시티 호텔", "area": "Ueno", "address": "1-14-8 Ueno, Taito, Tokyo", "stars": 3, "price_jpy": 18500, "price_krw": 175750, "rating": 8.0, "review_count": 1654, "category_ratings": {"cleanliness": 8.2, "location": 9.0, "value": 8.6, "service": 7.8, "comfort": 7.9}, "distances_min_walk": {"shinjuku": 32, "shibuya": 37, "tokyo": 15, "ueno": 3, "ikebukuro": 18}, "nearest_station": "Ueno Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "restaurant", "concierge"], "breakfast_included": true, "lat": 35.7094, "lng": 139.7745, "booking_url": "https://www.booking.com/hotel/jp/ueno-first-city.html", "highlight": "우에노 공원·동물원 도보권, 조식 포함", "review_summary": "우에노 공원 바로 옆. 아메요코 시장 걸어서 5분. 12월 우에노 동물원 일루미네이션 접근 최고."}, {"id": 22, "name": "Mitsui Garden Hotel Ginza Premier", "name_ko": "미쓰이 가든 호텔 긴자 프리미어", "area": "Ginza", "address": "8-13-1 Ginza, Chuo, Tokyo", "stars": 4, "price_jpy": 29000, "price_krw": 275500, "rating": 8.9, "review_count": 2543, "category_ratings": {"cleanliness": 9.1, "location": 9.0, "value": 8.2, "service": 8.9, "comfort": 9.0}, "distances_min_walk": {"shinjuku": 28, "shibuya": 28, "tokyo": 12, "ueno": 22, "ikebukuro": 35}, "nearest_station": "Shimbashi Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "restaurant", "bar", "gym", "concierge", "sky_lounge"], "breakfast_included": false, "lat": 35.6669, "lng": 139.7608, "booking_url": "https://www.booking.com/hotel/jp/mitsui-garden-ginza-premier.html", "highlight": "긴자 26층 스카이 라운지에서 파노라마 뷰", "review_summary": "긴자 최고 뷰 호텔. 26층 스카이 라운지 환상적. 서비스 수준 높고 객실 넓음."}, {"id": 23, "name": "Sotetsu Fresa Inn Tokyo-Kyobashi", "name_ko": "소테쓰 프레사 인 도쿄 교바시", "area": "Ginza", "address": "2-9-9 Kyobashi, Chuo, Tokyo", "stars": 3, "price_jpy": 19000, "price_krw": 180500, "rating": 8.3, "review_count": 2109, "category_ratings": {"cleanliness": 8.6, "location": 9.0, "value": 8.7, "service": 8.1, "comfort": 8.2}, "distances_min_walk": {"shinjuku": 28, "shibuya": 28, "tokyo": 8, "ueno": 18, "ikebukuro": 33}, "nearest_station": "Kyobashi Station", "nearest_station_walk_min": 2, "amenities": ["wifi", "laundry", "concierge"], "breakfast_included": true, "lat": 35.6757, "lng": 139.77, "booking_url": "https://www.booking.com/hotel/jp/sotetsu-fresa-kyobashi.html", "highlight": "도쿄역 8분, 긴자 접근, 조식 포함", "review_summary": "도쿄역과 긴자 모두 걸어갈 수 있는 최적 위치. 조식 퀄리티 양호."}, {"id": 24, "name": "Remm Akihabara", "name_ko": "렘 아키하바라", "area": "Akihabara", "address": "1-6-2 Kandaizumicho, Chiyoda, Tokyo", "stars": 4, "price_jpy": 22000, "price_krw": 209000, "rating": 8.5, "review_count": 1876, "category_ratings": {"cleanliness": 8.9, "location": 9.1, "value": 8.4, "service": 8.4, "comfort": 8.8}, "distances_min_walk": {"shinjuku": 25, "shibuya": 30, "tokyo": 10, "ueno": 10, "ikebukuro": 22}, "nearest_station": "Akihabara Station", "nearest_station_walk_min": 2, "amenities": ["wifi", "high_quality_mattress", "rain_shower", "concierge"], "breakfast_included": false, "lat": 35.698, "lng": 139.773, "booking_url": "https://www.booking.com/hotel/jp/remm-akihabara.html", "highlight": "수면 특화 호텔, 고급 침구·레인샤워", "review_summary": "잠 잘 자는 것에 특화된 호텔. 침대와 베개 퀄리티 최고. 아키하바라 쇼핑 후 휴식에 완벽."}, {"id": 25, "name": "Candeo Hotels Tokyo Shimbashi", "name_ko": "칸데오 호텔 도쿄 신바시", "area": "Ginza", "address": "4-3-5 Shimbashi, Minato, Tokyo", "stars": 4, "price_jpy": 23500, "price_krw": 223250, "rating": 8.7, "review_count": 2341, "category_ratings": {"cleanliness": 9.0, "location": 8.9, "value": 8.5, "service": 8.6, "comfort": 8.8}, "distances_min_walk": {"shinjuku": 28, "shibuya": 25, "tokyo": 10, "ueno": 22, "ikebukuro": 33}, "nearest_station": "Shimbashi Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "sky_onsen", "sauna", "restaurant", "concierge"], "breakfast_included": false, "lat": 35.6659, "lng": 139.7578, "booking_url": "https://www.booking.com/hotel/jp/candeo-shimbashi.html", "highlight": "고층 스카이 온천, 도쿄만 야경", "review_summary": "고층 온천에서 도쿄만 야경이 절경. 신바시역 도보 3분. 서비스 친절하고 청결도 높음."}, {"id": 26, "name": "Bellustar Tokyo, A Pan Pacific Hotel", "name_ko": "벨루스타 도쿄", "area": "Shinjuku", "address": "1-29-1 Kabukicho, Shinjuku, Tokyo", "stars": 5, "price_jpy": 32000, "price_krw": 304000, "rating": 9.2, "review_count": 876, "category_ratings": {"cleanliness": 9.5, "location": 9.3, "value": 8.0, "service": 9.3, "comfort": 9.4}, "distances_min_walk": {"shinjuku": 5, "shibuya": 20, "tokyo": 30, "ueno": 35, "ikebukuro": 15}, "nearest_station": "Shinjuku Station", "nearest_station_walk_min": 5, "amenities": ["wifi", "restaurant", "bar", "spa", "gym", "pool", "concierge", "sky_lounge"], "breakfast_included": false, "lat": 35.696, "lng": 139.7041, "booking_url": "https://www.booking.com/hotel/jp/bellustar-tokyo.html", "highlight": "2023년 오픈 가부키초 타워 최신 럭셔리 호텔", "review_summary": "가부키초 타워 내 최신 5성 호텔. 38층~47층 전 객실. 도쿄에서 가장 트렌디한 숙박지."}, {"id": 27, "name": "Mystays Asakusa", "name_ko": "마이스테이즈 아사쿠사", "area": "Asakusa", "address": "2-3-11 Asakusa, Taito, Tokyo", "stars": 3, "price_jpy": 20000, "price_krw": 190000, "rating": 8.2, "review_count": 1543, "category_ratings": {"cleanliness": 8.3, "location": 9.1, "value": 8.5, "service": 7.9, "comfort": 8.1}, "distances_min_walk": {"shinjuku": 38, "shibuya": 42, "tokyo": 20, "ueno": 12, "ikebukuro": 27}, "nearest_station": "Asakusa Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "kitchenette", "laundry", "concierge"], "breakfast_included": false, "lat": 35.7121, "lng": 139.7953, "booking_url": "https://www.booking.com/hotel/jp/mystays-asakusa.html", "highlight": "센소지 도보 3분, 주방 완비", "review_summary": "센소지 바로 옆 위치. 소형 주방 있어 편의점 구매 음식 조리 가능. 가격 대비 위치 최상."}, {"id": 28, "name": "Vessel Hotel Campana Shinjuku", "name_ko": "베셀 호텔 캄파나 신주쿠", "area": "Shinjuku", "address": "6-24-4 Nishi-Shinjuku, Shinjuku, Tokyo", "stars": 3, "price_jpy": 19000, "price_krw": 180500, "rating": 8.1, "review_count": 987, "category_ratings": {"cleanliness": 8.3, "location": 8.7, "value": 8.5, "service": 7.9, "comfort": 8.0}, "distances_min_walk": {"shinjuku": 10, "shibuya": 22, "tokyo": 30, "ueno": 35, "ikebukuro": 18}, "nearest_station": "Nishi-Shinjuku Station", "nearest_station_walk_min": 3, "amenities": ["wifi", "sauna", "restaurant", "laundry"], "breakfast_included": false, "lat": 35.6912, "lng": 139.6872, "booking_url": "https://www.booking.com/hotel/jp/vessel-campana-shinjuku.html", "highlight": "신주쿠 서쪽, 사우나 완비 비즈니스 호텔", "review_summary": "신주쿠 서쪽으로 조용한 편. 사우나 시설 양호. 도쿄도청 걸어서 5분."}]};
+
+function loadData() {
+  exchangeRate = HOTELS_DATA.meta.currency_rate.JPY_to_KRW;
+  document.getElementById('exchange-rate').value = exchangeRate;
+  hotels = HOTELS_DATA.hotels;
+  render();
+}
+
+// ──────────── 필터 상태 ────────────
+function getFilters() {
+  const rate = parseFloat(document.getElementById('exchange-rate').value) || 9.5;
+  const pMin = parseInt(document.getElementById('price-min').value);
+  const pMax = parseInt(document.getElementById('price-max').value);
+  const stars = parseInt(document.querySelector('#star-filter .star-btn.active').dataset.stars);
+
+  const areas = Array.from(document.querySelectorAll('#area-filter input:checked')).map(i => i.value);
+  const amenities = Array.from(document.querySelectorAll('#amenity-filter input:checked')).map(i => i.value);
+  const sort = document.getElementById('sort-select').value;
+  return { rate, pMin, pMax, stars, areas, amenities, sort };
+}
+
+function applyFilters(h, f) {
+  const krw = Math.round(h.price_jpy * f.rate);
+  if (krw < f.pMin || krw > f.pMax) return false;
+  if (f.stars > 0 && h.stars !== f.stars) return false;
+  if (!f.areas.includes(h.area)) return false;
+
+  // Amenity filter: check both amenities array and breakfast_included
+  for (const a of f.amenities) {
+    if (a === 'breakfast_included') {
+      if (!h.breakfast_included) return false;
+    } else {
+      if (!h.amenities.includes(a)) return false;
+    }
+  }
+  return true;
+}
+
+function sortHotels(arr, sort, rate) {
+  return [...arr].sort((a, b) => {
+    switch(sort) {
+      case 'rating': return b.rating - a.rating;
+      case 'price_asc': return (a.price_jpy * rate) - (b.price_jpy * rate);
+      case 'price_desc': return (b.price_jpy * rate) - (a.price_jpy * rate);
+      case 'distance_shinjuku': return a.distances_min_walk.shinjuku - b.distances_min_walk.shinjuku;
+      case 'distance_shibuya': return a.distances_min_walk.shibuya - b.distances_min_walk.shibuya;
+      case 'distance_tokyo': return a.distances_min_walk.tokyo - b.distances_min_walk.tokyo;
+      case 'reviews': return b.review_count - a.review_count;
+      default: return 0;
+    }
+  });
+}
+
+// ──────────── 렌더링 ────────────
+const AREA_COLORS = {
+  Shinjuku: 'linear-gradient(135deg,#667eea,#764ba2)',
+  Shibuya: 'linear-gradient(135deg,#f093fb,#f5576c)',
+  Ginza: 'linear-gradient(135deg,#4facfe,#00f2fe)',
+  Asakusa: 'linear-gradient(135deg,#43e97b,#38f9d7)',
+  Akihabara: 'linear-gradient(135deg,#fa709a,#fee140)',
+  Ikebukuro: 'linear-gradient(135deg,#a18cd1,#fbc2eb)',
+  Ueno: 'linear-gradient(135deg,#fccb90,#d57eeb)',
+};
+const AREA_KO = {
+  Shinjuku:'신주쿠', Shibuya:'시부야', Ginza:'긴자',
+  Asakusa:'아사쿠사', Akihabara:'아키하바라', Ikebukuro:'이케부쿠로', Ueno:'우에노'
+};
+const AMENITY_LABELS = {
+  wifi:'WiFi', restaurant:'레스토랑', bar:'바', gym:'피트니스', pool:'수영장',
+  spa:'스파', concierge:'컨시어지', hot_spring_bath:'온천', sauna:'사우나',
+  free_ramen_night:'야식라멘🍜', rooftop_bar:'루프탑바', rooftop_terrace:'루프탑',
+  laundry:'코인세탁', kitchenette:'주방', business_center:'비즈니스센터',
+  sky_lounge:'스카이라운지', jazz_bar:'재즈바', sky_onsen:'스카이온천',
+  high_quality_mattress:'프리미엄침대', rain_shower:'레인샤워',
+};
+const SPECIAL_AMENITIES = ['hot_spring_bath','free_ramen_night','rooftop_bar','sky_onsen','jazz_bar','sky_lounge','pool','spa','kitchenette'];
+
+function formatKRW(n) { return '₩' + n.toLocaleString('ko-KR'); }
+function ratingColor(r) { return r >= 8.5 ? 'good' : 'avg'; }
+
+function render() {
+  const f = getFilters();
+  exchangeRate = f.rate;
+
+  // Update KRW prices with new rate
+  hotels.forEach(h => h.price_krw = Math.round(h.price_jpy * f.rate));
+
+  let filtered = hotels.filter(h => applyFilters(h, f));
+  filtered = sortHotels(filtered, f.sort, f.rate);
+
+  document.getElementById('results-count').textContent = `${filtered.length}개 호텔 표시 중`;
+  updatePriceLabels();
+
+  const grid = document.getElementById('hotel-grid');
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="no-results"><span class="emoji">🔍</span>조건에 맞는 호텔이 없습니다.<br><small>필터를 조정해보세요.</small></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(h => renderCard(h)).join('');
+
+  // 지도 뷰가 활성화돼 있으면 마커 갱신
+  if (currentView === 'map') {
+    if (!map) initMap();
+    updateMapMarkers(filtered);
+  }
+}
+
+function renderCard(h) {
+  const isSelected = compareList.includes(h.id);
+  const krw = formatKRW(h.price_krw);
+
+  // Distance tags (주요 역)
+  const mainStations = [
+    { key: 'shinjuku', label: '신주쿠' },
+    { key: 'shibuya', label: '시부야' },
+    { key: 'tokyo', label: '도쿄역' },
+    { key: 'ueno', label: '우에노' },
+  ];
+  const distTags = mainStations.map(s => {
+    const min = h.distances_min_walk[s.key];
+    const cls = min <= 10 ? 'distance-tag close' : 'distance-tag';
+    return `<span class="${cls}">${s.label} ${min}분</span>`;
+  }).join('');
+
+  // Top amenities (max 4)
+  const amenityList = [...h.amenities];
+  if (h.breakfast_included) amenityList.unshift('breakfast_included');
+  const amenityTags = amenityList.slice(0, 4).map(a => {
+    const isSpecial = SPECIAL_AMENITIES.includes(a) || a === 'breakfast_included';
+    return `<span class="amenity-tag${isSpecial?' special':''}">${AMENITY_LABELS[a]||a}</span>`;
+  }).join('');
+
+  const newBadge = h.id === 26 ? '<span class="tag-new">NEW</span>' : '';
+
+  return `<div class="hotel-card${isSelected?' selected':''}" onclick="openDetail(${h.id})">
+    <div class="card-map" style="background:${AREA_COLORS[h.area]||'#667eea'}">
+      <span class="area-badge">${AREA_KO[h.area]||h.area}</span>
+    </div>
+    <div class="card-body">
+      <div class="card-title-row">
+        <div>
+          <div class="card-name">${h.name}${newBadge}</div>
+          <div class="card-name-ko">${h.name_ko}</div>
+          <div class="stars">${'★'.repeat(h.stars)}${'☆'.repeat(5-h.stars)}</div>
+        </div>
+        <div>
+          <span class="rating-badge ${ratingColor(h.rating)}">${h.rating}</span>
+          <div style="font-size:0.72rem;color:var(--text-muted);text-align:right;margin-top:2px;">${h.review_count.toLocaleString()}개 리뷰</div>
+        </div>
+      </div>
+      <div class="price-row">
+        <span class="price-krw">${krw}</span>
+        <span class="price-label">/ 박</span>
+        <span class="price-jpy">¥${h.price_jpy.toLocaleString()}</span>
+        ${h.breakfast_included ? '<span class="badge-breakfast">조식포함</span>' : ''}
+      </div>
+      <div class="highlight-text">✦ ${h.highlight}</div>
+      <div class="distance-tags">${distTags}</div>
+      <div class="amenity-tags">${amenityTags}</div>
+      <div class="card-actions" onclick="event.stopPropagation()">
+        <button class="btn-detail" onclick="openDetail(${h.id})">상세보기</button>
+        <button class="btn-itinerary" onclick="openItinerary(${h.id})">📅 일정</button>
+        <button class="btn-compare${isSelected?' active':''}" onclick="toggleCompare(${h.id}, this)">${isSelected?'비교 해제':'+ 비교'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+
+// ──────────── 여행 일정 모달 ────────────
+const TAG_TYPE_MAP = { "도보": "walk", "전철": "walk", "관광": "view", "신사": "view", "공원": "view", "문화": "view", "쇼핑": "shop", "맛집": "food", "카페": "food", "바": "food", "야경": "view", "미술관": "view" };
+
+function openItinerary(hotelId) {
+  const h = hotels.find(x => x.id === hotelId);
+  if (!h) return;
+  activeItinHotel = h;
+  activeDay = 0;
+  renderItineraryModal();
+  openModal('itinerary-modal');
+}
+
+function renderItineraryModal() {
+  const h = activeItinHotel;
+  const plan = ITINERARIES[h.area] || ITINERARIES['Shinjuku'];
+  const day = plan.days[activeDay];
+
+  const tabs = plan.days.map((d, i) =>
+    `<div class="day-tab${i===activeDay?' active':''}" onclick="switchDay(${i})">${d.label}<br><small style="font-weight:400;font-size:0.7rem;">${d.subtitle}</small></div>`
+  ).join('');
+
+  const decTips = day.slots.filter(s => s.december);
+  const decBanner = decTips.length > 0
+    ? `<div class="itin-dec-banner">🎄 12월 이벤트 ${decTips.length}곳 포함 · ${decTips.map(s=>s.place.split(' ')[0]).join(', ')}</div>`
+    : '';
+
+  const timeline = day.slots.map((s, i) => {
+    const tagHtml = s.tags.map(t => {
+      const key = Object.keys(TAG_TYPE_MAP).find(k => t.includes(k)) || '';
+      const cls = TAG_TYPE_MAP[key] || 'walk';
+      return `<span class="tl-tag ${cls}">${t}</span>`;
+    }).join('');
+    const decTag = s.december ? `<span class="tl-tag dec">🎄 12월 이벤트</span>` : '';
+    const hotTag = s.hot ? `<span class="tl-tag hot">🔥 핫플</span>` : '';
+    const tipHtml = s.tip ? `<div class="tl-tip">${s.tip}</div>` : '';
+    return `
+      <div class="tl-item" onclick="flyToAttraction(${s.lat}, ${s.lng}, '${s.place.replace(/'/g,"\'")}')">
+        <div class="tl-dot-col">
+          <div class="tl-time">${s.time.replace(/(오전|오후|저녁) /, '')}</div>
+          <div class="tl-dot" style="color:${s.color};background:${s.color};"></div>
+          <div style="font-size:0.65rem;color:var(--text-muted);text-align:center;">${s.time.includes('오전')?'AM':s.time.includes('오후')?'PM':'🌃'}</div>
+        </div>
+        <div class="tl-card${s.december?' december':''}">
+          <div class="tl-place-row">
+            <span class="tl-place">${s.place}</span>
+            <div class="tl-tags">${tagHtml}${decTag}</div>
+          </div>
+          <div class="tl-desc">${s.desc}</div>
+          ${tipHtml}
+        </div>
+      </div>`;
+  }).join('');
+
+  const krw = formatKRW(h.price_krw);
+  const hotelArea = ({"Shinjuku":"신주쿠","Shibuya":"시부야","Ginza":"긴자","Asakusa":"아사쿠사","Akihabara":"아키하바라","Ikebukuro":"이케부쿠로","Ueno":"우에노"})[h.area] || h.area;
+
+  document.getElementById('itinerary-modal-content').innerHTML = `
+    <div class="itin-header-band">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="itin-hotel-name">📅 ${h.name_ko} 여행 일정</div>
+          <div class="itin-subtitle">${hotelArea} · ${'★'.repeat(h.stars)} · ${krw}/박 · 테마: ${plan.theme}</div>
+        </div>
+        <button class="modal-close" style="color:rgba(255,255,255,0.7);" onclick="closeModal('itinerary-modal')">✕</button>
+      </div>
+    </div>
+    ${decBanner}
+    <div class="day-tabs">${tabs}</div>
+    <div class="day-content" id="day-content">
+      <div class="day-theme">${day.theme_text}</div>
+      <div class="timeline">${timeline}</div>
+    </div>
+    <div class="itin-legend">
+      <span class="itin-legend-item"><span class="tl-tag walk" style="font-size:0.7rem;">🚶 이동</span> 도보/전철 시간</span>
+      <span class="itin-legend-item"><span class="tl-tag dec" style="font-size:0.7rem;">🎄</span> 12월 이벤트</span>
+      <span class="itin-legend-item"><span class="tl-tag food" style="font-size:0.7rem;">🍴</span> 식음</span>
+      <span class="itin-legend-item"><span class="tl-tag shop" style="font-size:0.7rem;">🛍️</span> 쇼핑</span>
+      <span class="itin-legend-item" style="color:var(--text-muted);font-size:0.75rem;">💡 카드 클릭 → 지도에서 위치 확인</span>
+    </div>
+    <div style="padding:0 20px 16px;">
+      <button class="itin-map-btn" onclick="showItinOnMap()">🗺️ 이 일정 지도에서 보기</button>
+    </div>
+  `;
+}
+
+function switchDay(idx) {
+  activeDay = idx;
+  renderItineraryModal();
+}
+
+function flyToAttraction(lat, lng, name) {
+  closeModal('itinerary-modal');
+  switchView('map');
+  setTimeout(() => {
+    if (!map) initMap();
+    map.setView([lat, lng], 16);
+    // 팝업 마커 추가
+    const tempMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        className: '',
+        html: `<div style="background:#e53e3e;color:white;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3);">📍 ${name}</div>`,
+        iconAnchor: [0, 20]
+      })
+    }).addTo(map);
+    itinAttractionMarkers.push(tempMarker);
+    setTimeout(() => { map.removeLayer(tempMarker); itinAttractionMarkers = itinAttractionMarkers.filter(m=>m!==tempMarker); }, 4000);
+  }, 300);
+}
+
+function showItinOnMap() {
+  if (!activeItinHotel) return;
+  const plan = ITINERARIES[activeItinHotel.area] || ITINERARIES['Shinjuku'];
+  const day = plan.days[activeDay];
+
+  closeModal('itinerary-modal');
+  switchView('map');
+
+  setTimeout(() => {
+    if (!map) initMap();
+    // 기존 일정 마커 제거
+    itinAttractionMarkers.forEach(m => map.removeLayer(m));
+    itinAttractionMarkers = [];
+
+    const bounds = [];
+
+    // 호텔 마커
+    const hotelIcon = L.divIcon({
+      className: '',
+      html: `<div style="background:#1a202c;color:white;padding:5px 10px;border-radius:8px;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">🏨 호텔</div>`,
+      iconAnchor: [25, 20]
+    });
+    const hotelM = L.marker([activeItinHotel.lat, activeItinHotel.lng], { icon: hotelIcon }).addTo(map);
+    itinAttractionMarkers.push(hotelM);
+    bounds.push([activeItinHotel.lat, activeItinHotel.lng]);
+
+    // 관광지 마커 (번호 순서)
+    day.slots.forEach((s, idx) => {
+      const bg = s.december ? '#e53e3e' : s.color;
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="background:${bg};color:white;width:28px;height:28px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;">${idx+1}</div>`,
+        iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -30]
+      });
+      const m = L.marker([s.lat, s.lng], { icon })
+        .bindPopup(`<div style="font-family:-apple-system,sans-serif;">
+          <div style="font-weight:800;font-size:0.9rem;margin-bottom:4px;">${idx+1}. ${s.place}</div>
+          <div style="font-size:0.78rem;color:#718096;">${s.time}</div>
+          <div style="font-size:0.82rem;margin-top:4px;">${s.desc}</div>
+          ${s.tip ? `<div style="font-size:0.75rem;color:#ed8936;font-weight:600;margin-top:4px;">${s.tip}</div>` : ''}
+        </div>`, { maxWidth: 240 })
+        .addTo(map);
+      itinAttractionMarkers.push(m);
+      bounds.push([s.lat, s.lng]);
+    });
+
+    // 경로 선 그리기
+    const allPoints = [[activeItinHotel.lat, activeItinHotel.lng], ...day.slots.map(s => [s.lat, s.lng])];
+    const polyline = L.polyline(allPoints, {
+      color: '#e53e3e', weight: 2, opacity: 0.5, dashArray: '6,6'
+    }).addTo(map);
+    itinAttractionMarkers.push(polyline);
+
+    if (bounds.length > 0) map.fitBounds(bounds, { padding: [40, 40] });
+  }, 300);
+}
+
+// ──────────── 상세 모달 ────────────
+function openDetail(id) {
+  const h = hotels.find(x => x.id === id);
+  if (!h) return;
+
+  const cats = h.category_ratings;
+  const catLabels = { cleanliness:'청결도', location:'위치', value:'가성비', service:'서비스', comfort:'편안함' };
+
+  const rateBars = Object.entries(cats).map(([k, v]) => `
+    <div class="rating-bar-row">
+      <span class="rating-bar-label">${catLabels[k]||k}</span>
+      <div class="rating-bar-track"><div class="rating-bar-fill" style="width:${v*10}%"></div></div>
+      <span class="rating-bar-score">${v}</span>
+    </div>`).join('');
+
+  const stationItems = Object.entries(h.distances_min_walk).map(([k,v]) => {
+    const labels = { shinjuku:'신주쿠', shibuya:'시부야', tokyo:'도쿄역', ueno:'우에노', ikebukuro:'이케부쿠로' };
+    const pct = Math.max(0, 100 - v * 2);
+    const color = v <= 10 ? '#48bb78' : v <= 20 ? '#ed8936' : '#fc8181';
+    return `<div class="station-item">
+      <div class="station-name">${labels[k]||k}</div>
+      <div class="station-time" style="color:${color}">${v}</div>
+      <div class="station-unit">분 (도보)</div>
+      <div class="station-bar"><div class="station-bar-fill" style="width:${pct}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+
+  const allAmenities = [...h.amenities];
+  if (h.breakfast_included) allAmenities.unshift('breakfast_included');
+  const allAmenityTags = allAmenities.map(a =>
+    `<span class="amenity-tag${SPECIAL_AMENITIES.includes(a)||a==='breakfast_included'?' special':''}">${AMENITY_LABELS[a]||a}</span>`
+  ).join('');
+
+  const mapUrl = `https://www.google.com/maps?q=${h.lat},${h.lng}`;
+
+  document.getElementById('detail-modal-content').innerHTML = `
+    <div class="modal-header">
+      <div>
+        <div style="font-size:1.2rem;font-weight:800;">${h.name}</div>
+        <div style="color:var(--text-muted);font-size:0.9rem;">${h.name_ko} · ${'★'.repeat(h.stars)} · ${AREA_KO[h.area]||h.area}</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('detail-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:2rem;font-weight:800;color:var(--primary);">${formatKRW(h.price_krw)}<span style="font-size:1rem;font-weight:400;color:var(--text-muted);"> / 박</span></div>
+          <div style="color:var(--text-muted);font-size:0.85rem;">¥${h.price_jpy.toLocaleString()} (환율 ${exchangeRate}기준)</div>
+          ${h.breakfast_included ? '<span class="badge-breakfast" style="display:inline-block;margin-top:6px;">조식 포함</span>' : ''}
+        </div>
+        <div>
+          <span class="rating-badge ${ratingColor(h.rating)}" style="font-size:1.5rem;padding:10px 16px;">${h.rating}</span>
+          <div style="font-size:0.8rem;color:var(--text-muted);text-align:center;margin-top:4px;">${h.review_count.toLocaleString()}개 리뷰</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:700;margin-bottom:8px;">📊 카테고리별 평점</div>
+        <div class="rating-bars">${rateBars}</div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:700;margin-bottom:8px;">🚉 주요 역까지 도보 거리</div>
+        <div class="station-grid">${stationItems}</div>
+        <a class="map-link" href="${mapUrl}" target="_blank">🗺️ Google Maps에서 위치 보기</a>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:700;margin-bottom:8px;">✨ 시설 및 서비스</div>
+        <div class="amenity-tags">${allAmenityTags}</div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:700;margin-bottom:6px;">💬 리뷰 요약</div>
+        <div class="review-text">${h.review_summary}</div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a class="btn-booking" href="${h.booking_url}" target="_blank" style="padding:10px 20px;font-size:0.95rem;">Booking.com 예약 →</a>
+        <button class="btn-itinerary" style="padding:10px 16px;font-size:0.9rem;" onclick="closeModal('detail-modal');openItinerary(${h.id})">📅 여행 일정 보기</button>
+        <button class="btn btn-primary" onclick="toggleCompare(${h.id});closeModal('detail-modal')">
+          ${compareList.includes(h.id) ? '비교 목록에서 제거' : '+ 비교 목록에 추가'}
+        </button>
+      </div>
+    </div>`;
+  openModal('detail-modal');
+}
+
+// ──────────── 비교 기능 ────────────
+function toggleCompare(id, btn) {
+  const idx = compareList.indexOf(id);
+  if (idx === -1) {
+    if (compareList.length >= 3) {
+      alert('최대 3개 호텔까지 비교할 수 있습니다.');
+      return;
+    }
+    compareList.push(id);
+  } else {
+    compareList.splice(idx, 1);
+  }
+  updateCompareBar();
+  render();
+}
+
+function updateCompareBar() {
+  const bar = document.getElementById('compare-bar');
+  const chips = document.getElementById('compare-chips');
+  if (compareList.length === 0) { bar.classList.remove('visible'); return; }
+  bar.classList.add('visible');
+  chips.innerHTML = compareList.map(id => {
+    const h = hotels.find(x => x.id === id);
+    return `<span class="compare-chip">${h.name_ko}<button onclick="toggleCompare(${id})">✕</button></span>`;
+  }).join('');
+}
+
+function clearCompare() {
+  compareList = [];
+  updateCompareBar();
+  render();
+}
+
+function showCompare() {
+  if (compareList.length < 2) { alert('2개 이상 호텔을 선택해주세요.'); return; }
+  const selected = compareList.map(id => hotels.find(x => x.id === id));
+
+  const cols = selected.length + 1;
+  const colStyle = `grid-template-columns: 120px ${'1fr '.repeat(selected.length)}`;
+
+  const rows = [
+    { label: '호텔명', render: h => `<strong>${h.name_ko}</strong>` },
+    { label: '지역', render: h => AREA_KO[h.area]||h.area },
+    { label: '등급', render: h => '★'.repeat(h.stars) },
+    { label: '가격/박', render: h => `<strong style="color:var(--primary)">${formatKRW(h.price_krw)}</strong>`, bestFn: arr => arr.reduce((a,b) => a.price_krw < b.price_krw ? a : b).id },
+    { label: '전체 평점', render: h => h.rating, bestFn: arr => arr.reduce((a,b) => a.rating > b.rating ? a : b).id },
+    { label: '청결도', render: h => h.category_ratings.cleanliness, bestFn: arr => arr.reduce((a,b) => a.category_ratings.cleanliness > b.category_ratings.cleanliness ? a : b).id },
+    { label: '위치', render: h => h.category_ratings.location, bestFn: arr => arr.reduce((a,b) => a.category_ratings.location > b.category_ratings.location ? a : b).id },
+    { label: '가성비', render: h => h.category_ratings.value, bestFn: arr => arr.reduce((a,b) => a.category_ratings.value > b.category_ratings.value ? a : b).id },
+    { label: '서비스', render: h => h.category_ratings.service, bestFn: arr => arr.reduce((a,b) => a.category_ratings.service > b.category_ratings.service ? a : b).id },
+    { label: '신주쿠까지', render: h => `${h.distances_min_walk.shinjuku}분`, bestFn: arr => arr.reduce((a,b) => a.distances_min_walk.shinjuku < b.distances_min_walk.shinjuku ? a : b).id },
+    { label: '시부야까지', render: h => `${h.distances_min_walk.shibuya}분`, bestFn: arr => arr.reduce((a,b) => a.distances_min_walk.shibuya < b.distances_min_walk.shibuya ? a : b).id },
+    { label: '도쿄역까지', render: h => `${h.distances_min_walk.tokyo}분`, bestFn: arr => arr.reduce((a,b) => a.distances_min_walk.tokyo < b.distances_min_walk.tokyo ? a : b).id },
+    { label: '조식포함', render: h => h.breakfast_included ? '✅' : '❌' },
+    { label: '리뷰 수', render: h => h.review_count.toLocaleString() + '개' },
+  ];
+
+  const tableHTML = rows.map(r => {
+    const bestId = r.bestFn ? r.bestFn(selected) : null;
+    const cells = selected.map(h =>
+      `<div class="compare-cell${bestId===h.id?' best-value':''}">${r.render(h)}</div>`
+    ).join('');
+    return `<div class="compare-row" style="${colStyle}"><div class="compare-cell label">${r.label}</div>${cells}</div>`;
+  }).join('');
+
+  document.getElementById('compare-modal-content').innerHTML = `
+    <div class="modal-header">
+      <div style="font-size:1.1rem;font-weight:800;">📊 호텔 비교</div>
+      <button class="modal-close" onclick="closeModal('compare-modal')">✕</button>
+</div>
+    </div>
+    <div class="modal-body">
+      <div class="compare-grid">${tableHTML}</div>
+      <p style="margin-top:12px;font-size:0.78rem;color:var(--text-muted);">* 초록색 셀이 비교 항목 중 최고값입니다.</p>
+    </div>
+  `;
+  openModal('compare-modal');
+}
+
+// ──────────── 모달 열기/닫기 ────────────
+function openModal(id) {
+  document.getElementById(id).classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('visible');
+  document.body.style.overflow = '';
+}
+
+// ──────────── 가격 레이블 갱신 ────────────
+function updatePriceLabels() {
+  const rate = parseFloat(document.getElementById('exchange-rate').value) || 9.5;
+  const pMin = parseInt(document.getElementById('price-min').value);
+  const pMax = parseInt(document.getElementById('price-max').value);
+  document.getElementById('price-min-label').textContent = formatKRW(pMin);
+  document.getElementById('price-max-label').textContent = formatKRW(pMax);
+}
+
+// ──────────── 목표 필터 ────────────
+function setTarget() {
+  document.getElementById('price-min').value = 200000;
+  document.getElementById('price-max').value = 300000;
+  updatePriceLabels();
+  render();
+}
+
+// ──────────── 이벤트 바인딩 ────────────
+document.getElementById('price-min').addEventListener('input', () => { updatePriceLabels(); render(); });
+document.getElementById('price-max').addEventListener('input', () => { updatePriceLabels(); render(); });
+document.getElementById('exchange-rate').addEventListener('input', render);
+document.getElementById('sort-select').addEventListener('change', render);
+
+document.querySelectorAll('#star-filter .star-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#star-filter .star-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+document.querySelectorAll('#area-filter input, #amenity-filter input').forEach(cb => {
+  cb.addEventListener('change', render);
+});
+
+// 모달 외부 클릭 시 닫기
+['detail-modal','compare-modal','itinerary-modal','hotspots-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) closeModal(id);
+  });
+});
+
+// ──────────── 초기 로드 ────────────
+loadData();
+
+</script>
+</body>
+</html>
