@@ -1005,8 +1005,9 @@ function updateMapMarkers(filteredHotels) {
         padding:5px 9px 5px 6px;
         border-radius:20px;
         box-shadow:0 2px 10px rgba(0,0,0,0.22);
-        display:flex;align-items:center;gap:5px;
+        display:inline-flex;align-items:center;gap:5px;
         cursor:pointer;white-space:nowrap;
+        transform:translate(-50%,-100%);
       ">
         <span style="
           background:${rc};color:white;
@@ -1015,8 +1016,8 @@ function updateMapMarkers(filteredHotels) {
         ">${h.rating}</span>
         <span style="font-size:11px;font-weight:800;color:#1a202c;">${priceShort}</span>
       </div>`,
-      iconSize: [94, 30],
-      iconAnchor: [47, 30],
+      iconSize: [0, 0],
+      iconAnchor: [0, 0],
       popupAnchor: [0, -34],
     });
 
